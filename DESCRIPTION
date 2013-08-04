@@ -1,0 +1,12 @@
+Package: textir
+Title:  Inverse Regression for Text Analysis
+Version: 2.0
+Date: 
+Author: Matt Taddy <taddy@chicagobooth.edu>
+Depends: R (>= 2.10), Matrix
+Suggests: MASS, Parallel
+Description:  A suite of tools for text mining and similar tasks.  
+Maintainer: Matt Taddy <taddy@chicagobooth.edu>
+License: GPL-3
+URL: http://faculty.chicagobooth.edu/matt.taddy/index.html
+References: Taddy (2012) "Multinomial Inverse Regression for Text Analysis" (http://arxiv.org/abs/1012.2098) 
