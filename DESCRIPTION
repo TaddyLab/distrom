@@ -1,12 +1,13 @@
-Package: textir  
-Title:  Inverse Regression for Text Analysis  
-Version: 2.0  
+Package: dmr 
+Title: Distributed Multinomial Regression
+Version: 0.01  
 Date: 8/2013  
 Author: Matt Taddy <taddy@chicagobooth.edu>  
-Depends: R (>= 2.10), Matrix  
-Suggests: MASS, Parallel  
-Description:  A suite of tools for text mining and similar tasks.  
+Depends: R (>= 2.10), Matrix, Parallel 
+Extends: gamlr
+Description: Does gamma-lasso path estimation for a multinomial logistic regression factorized into independent 
+Poisson log regressions.  Optimal coefficents chosen by an Information Criteria are returned.
 Maintainer: Matt Taddy <taddy@chicagobooth.edu>  
 License: GPL-3  
 URL: http://faculty.chicagobooth.edu/matt.taddy/index.html  
-References: Taddy (2012) "Multinomial Inverse Regression for Text Analysis" (http://arxiv.org/abs/1012.2098)  
+References: Taddy (2013) "Distributed Multinomial Regression"
