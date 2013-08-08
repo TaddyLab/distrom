@@ -36,7 +36,7 @@ data(we8there)
 
 B <- dmr(we8thereCounts,we8thereRatings,bins=5,cores=4)
 
-phat <- predict(B,we8thereRatings[sample.int(6175,5)],type="response")
+phat <- predict(B,we8thereRatings[sample.int(6175,5),],type="response")
 
 z <- predict(B,we8thereCounts,type="reduction")
 }
