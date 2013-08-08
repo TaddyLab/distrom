@@ -6,7 +6,15 @@ collapse <- function(x,v,nquant=NULL){
 	if(inherits(v,c("Matrix","simple_triplet_matrix")))
 		v <- as.matrix(v)
 	v <- as.data.frame(v)
-  	if(inherits(x,"data.frame")) x <- as.matrix(x)
+  	if(inherits(x,"data.frame")){
+  		if(ncol(x)>1) x <- as.matrix(x)
+  		else x <- factor(x[,1])
+  	}
+  	if(inherits(x,"factor")){
+  		cat <- levels(x)
+		x <- model.matrix(~.-1, data=data.frame(factor(as.vector(x))))
+		colnames(x) <- cat
+	}
   	if(inherits(x,"simple_triplet_matrix"))
     x <- sparseMatrix(i=x$i,j=x$j,x=x$v,
               dims=dim(x),dimnames=dimnames(x))
@@ -22,7 +30,7 @@ collapse <- function(x,v,nquant=NULL){
 	xstm <- summary(x)
 	xbin <- sparseMatrix(i=as.numeric(I)[xstm$i],
 					j = xstm$j, x=xstm$x,
-					dim=c(nlevels(I),ncol(x)),
+					dims=c(nlevels(I),ncol(x)),
 					dimnames=list(levels(I),colnames(x)))
 	return(list(x=xbin,v=vbin))
 }

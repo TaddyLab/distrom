@@ -8,7 +8,7 @@
 	\item{v}{Either matrix or Matrix of covariates.}
 	\item{nquant}{The number of quantile bins into which we collapse \code{v}.  \code{nquant=NULL} does no collapsing. }
 }
-\description{
+\details{
 	For each column of \code{v}, aggregates
 	the observations into \code{nquant} bins defined by their average value.  Both \code{v} and \code{x} are then collapsed according to levels of the interaction across implied bin-factors.
 }

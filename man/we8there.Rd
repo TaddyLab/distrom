@@ -18,7 +18,7 @@ Counts for 2804 bigrams in 6175 restaurant reviews from the site www.we8there.co
 \references{ 
 Maua, D.D. and Cozman, F.G. (2009), \emph{Representing and classifying user reviews}. In ENIA '09: VIII Enconro Nacional de Inteligencia Artificial, Brazil.
 
-Taddy (2012), \emph{Multinomial Inverse Regression for Text Analysis}.
+Taddy (2013), \emph{Multinomial Inverse Regression for Text Analysis}.
 \url{http://arxiv.org/abs/1012.2098}
 
 Taddy (2013), \emph{Distributed Multinomial Regression}.
@@ -32,11 +32,10 @@ Matt Taddy, \email{taddy@chicagobooth.edu}
 \seealso{ dmr }
 
 \examples{
+## some multinomial inverse regression
 data(we8there)
-
-B <- dmr(we8thereCounts,we8thereRatings,bins=5,cores=4)
-
-phat <- predict(B,we8thereRatings[sample.int(6175,5),],type="response")
-
-z <- predict(B,we8thereCounts,type="reduction")
+B <- dmr(we8thereCounts, we8thereRatings$Overall, bins=5,cores=4)
+Z <- predict(B,we8thereCounts,type="reduction")
+summary(fwd <- lm(we8thereRatings$Overall ~ Z))
+plot(fwd$fitted ~ factor(we8thereRatings$Overall))
 }

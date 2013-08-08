@@ -2,12 +2,13 @@
 \alias{dmr}
 \alias{predict.dmr}
 \title{Distributed Multinomial Regression}
+\description{Does gamma-lasso path estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.  Optimal coefficents are chosen by an Information Criterion.}
 \usage{
 dmr(counts, covars, bins=NULL, 
                 cores=1, k=2, ...)
 
 \method{predict}{dmr}(object,newdata,
-	type=c("link","response","reduction"))
+	type=c("link","response","reduction"), ...)
 }
 \arguments{
 \item{counts}{A dense \code{matrix} 
@@ -32,10 +33,19 @@ with equal probabilities are also multinomial, the model is then fit to these co
 	\deqn{
 	x_ij \sim Po(exp[\mu_i + \alpha_j + \beta v_i ]).
 	}
-	We plug-in estimate \eqn{\hat\mu_i = m_i/p}, where \eqn{m_i = \sum_j x_ij} and \eqn{p} is the dimension of \eqn{x_i}.  Then each individual is outsourced to Poisson regression in the \code{gamlr} package via the \code{mclapply} function of the \code{Parallel} library.  \code{gamlr} fits regularization paths of possible coefficients, and returns the best according to \code{AIC} with \code{k} as specificed here.  The combined coefficents across all dimensions are then returned from \code{dmr}.
+	We plug-in estimate \eqn{\hat\mu_i = m_i/p}, where \eqn{m_i = \sum_j x_ij} and \eqn{p} is the dimension of \eqn{x_i}.  Then each individual is outsourced to Poisson regression in the \code{gamlr} package via the \code{mclapply} function of the \code{parallel} library.  \code{gamlr} fits regularization paths of possible coefficients, and returns the best according to \code{AIC} with \code{k} as specificed here.  The combined coefficents across all dimensions are then returned from \code{dmr}.
 }
-\value{ A \code{dmr} covariate matrix, which inherits the \code{dgCMatrix} class as defined in the \code{Matrix} library.  This is the \code{ncol(covars)} by \code{ncol(counts)} matrix of logistic regression coefficients chosen by AIC from the regularization paths for each category. }
+\value{ A \code{dmr} covariate matrix, which inherits the \code{dgCMatrix} class as defined in the \code{Matrix} library.  This is the \code{ncol(covars)} by \code{ncol(counts)} matrix of logistic regression coefficients chosen by AIC from the regularization paths for each category. It includes the extra slot \code{lambda}: the selected \code{gamlr} penalty for each coefficient. }
 \references{Taddy (2013) Distributed Multinomial Regression}
 \author{Matt Taddy \email{taddy@chicagobooth.edu}}
+\examples{
+
+library(MASS)
+data(fgl)
+B <- dmr(fgl$type, fgl[,1:9],k=log(nrow(fgl)))
+log(B@lambda)
+P <- predict(B, fgl[,1:9], type="response")
+boxplot(P[cbind(1:214,fgl$type)]~fgl$type, ylab="fitted prob of true class")
+}
 \seealso{Examples in \code{we8there}, and the \code{gamlr} package.}
 

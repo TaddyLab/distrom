@@ -1,5 +1,5 @@
 
-setClass("dmr",contains="dgCMatrix")
+setClass("dmr",contains="dgCMatrix",slots="lambda")
 
 ##### Distributed Logistic Multinomial Regression  ######
 dmr <- function(counts, covars, bins=NULL, 
@@ -20,15 +20,23 @@ dmr <- function(counts, covars, bins=NULL,
      return(matrix(0,nrow=ncol(v)))
     fit <- gamlr(v, x[,j], family="poisson", fix=mu, ...)
     if(length(fit$lambda)<100) print(j)
-    beta <- coef(fit,which.min(AIC(fit,k=k)))
+    s <- which.min(AIC(fit,k=k))
+    beta <- coef(fit,s)
+    colnames(beta) <- sprintf("%s:%g",j,fit$lambda[s])
     as.matrix(beta)
   }
 
   B <- mclapply(colnames(x), grun, mc.cores=cores)
-  B <- matrix(unlist(B),ncol=ncol(x))
-  rownames(B) <- c("intercept",colnames(v))
-  colnames(B) <- colnames(x)
-  as(as(B,"dgCMatrix"),"dmr")
+  mcnames <- matrix(unlist(lapply(B,
+                      function(m) strsplit(colnames(m),":"))),
+                      ncol=2,byrow=TRUE)
+  B <- matrix(unlist(B),ncol=ncol(x),
+        dimnames=list(c("intercept",colnames(v)),mcnames[,1]))
+
+  zebra <- match(colnames(x),mcnames[,1])
+  B <- as(as(B[,zebra],"dgCMatrix"),"dmr")
+  B@lambda <- as.numeric(mcnames[zebra,2])
+  return(B)
 }
 
 ## method predict function
