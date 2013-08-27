@@ -3,7 +3,7 @@ setClass("dmr",contains="dgCMatrix",slots="lambda")
 
 ##### Distributed Logistic Multinomial Regression  ######
 dmr <- function(counts, covars, bins=NULL, 
-                cores=1, k=2, ...)
+                cores=1, k=2, grouped=TRUE, ...)
 {
   checked <- collapse(counts, covars, bins)
   x <- checked$x
@@ -15,27 +15,46 @@ dmr <- function(counts, covars, bins=NULL,
   x <- x[nz,]
   v <- v[nz,,drop=FALSE]
 
+  if(grouped){  
+    e0 = x-outer(mu,colSums(x)/sum(mu))
+    g0 = abs(t(v)%*%e0)
+    std = list(...)$standardize
+    if(is.null(std)) std = TRUE
+    if(std){
+      vs <- sqrt(colSums(v^2)/nrow(v) - colMeans(v)^2)
+      g0 <- g0/vs
+    }
+    lambda.start <- max(g0/nrow(v))
+  } else{ lambda.start = Inf }
+
   grun <- function(j){
     if(is.infinite(mu[j]))
      return(matrix(0,nrow=ncol(v)))
-    fit <- gamlr(v, x[,j], family="poisson", fix=mu, ...)
+    fit <- gamlr(v, x[,j], family="poisson", 
+                fix=mu, lambda.start=lambda.start)#, ...)
     if(length(fit$lambda)<100) print(j)
-    s <- which.min(AIC(fit,k=k))
-    beta <- coef(fit,s)
-    colnames(beta) <- sprintf("%s:%g",j,fit$lambda[s])
-    as.matrix(beta)
+    fit$jdmr = j
+    return(fit)
   }
 
-  B <- mclapply(colnames(x), grun, mc.cores=cores)
-  mcnames <- matrix(unlist(lapply(B,
-                      function(m) strsplit(colnames(m),":"))),
-                      ncol=2,byrow=TRUE)
-  B <- matrix(unlist(B),ncol=ncol(x),
-        dimnames=list(c("intercept",colnames(v)),mcnames[,1]))
+  mods <- mclapply(colnames(x), grun, mc.cores=cores)
+  names(mods) <- sapply(mods,function(fit) fit$jdmr)
 
-  zebra <- match(colnames(x),mcnames[,1])
+  if(grouped){
+    aic <- sapply(mods, function(fit) AIC(fit,k=k))
+    seg <- rep(which.min(rowSums(aic)),length(mods))
+  } else{ 
+    seg <- sapply(mods, function(fit) which.min(AIC(fit,k=k))) 
+  }
+  
+  B <- mapply(function(f,s) as.matrix(coef(f,s)), mods, seg)
+  rownames(B) <- c("intercept",colnames(v))
+
+  lambda <- mapply(function(f,s) f$lambda[s], mods, seg)
+
+  zebra <- match(colnames(x),colnames(B))
   B <- as(as(B[,zebra],"dgCMatrix"),"dmr")
-  B@lambda <- as.numeric(mcnames[zebra,2])
+  B@lambda <- as.numeric(lambda[zebra])
   return(B)
 }
 

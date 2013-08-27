@@ -11,13 +11,15 @@ collapse <- function(x,v,nquant=NULL){
   		else x <- factor(x[,1])
   	}
   	if(inherits(x,"factor")){
-  		cat <- levels(x)
-		x <- model.matrix(~.-1, data=data.frame(factor(as.vector(x))))
-		colnames(x) <- cat
+  		x <- sparseMatrix(i=1:length(x),
+  						j=as.numeric(x),
+  						x=rep(1,length(x)),
+  						dimnames=list(names(x),levels(x)))
 	}
-  	if(inherits(x,"simple_triplet_matrix"))
-    x <- sparseMatrix(i=x$i,j=x$j,x=x$v,
+  	if(inherits(x,"simple_triplet_matrix")){
+    	x <- sparseMatrix(i=x$i,j=x$j,x=x$v,
               dims=dim(x),dimnames=dimnames(x))
+    }
   	x=as(x,"dgCMatrix") 
   	if(is.null(colnames(x))) colnames(x) <- 1:ncol(x)
   	if(is.null(nquant)) return(list(x=x,v=v))
