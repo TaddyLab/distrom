@@ -1,5 +1,4 @@
 \name{dmr-class}
-\Rdversion{1.1}
 \docType{class}
 \alias{dmr-class}
 \alias{predict,dmr-method}
@@ -22,18 +21,14 @@ Objects can be created only by a call to the \code{dmr} function.
 }
 }
 \section{Extends}{
-  Class \code{"\linkS4class{dgCMatrix}"}, directly.
+  Class \code{\linkS4class{dgCMatrix}}, directly.
 }
 \section{Methods}{
   \describe{
     \item{predict}{\code{signature(object = "dmr")}: see \code{help(predict.dmr)} }
 	 }
 }
-\references{
-Taddy (2013) The Gamma Lasso 
-
-Taddy (2013) Distributed Multinomial Regression 
-}
-\author{Matt Taddy, taddy@chicagobooth.edu }
+\seealso{dmr,predict.dmr}
+\author{Matt Taddy \email{taddy@chicagobooth.edu} }
 \examples{showClass("dmr")}
 \keyword{classes}

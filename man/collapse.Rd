@@ -1,7 +1,7 @@
 \name{collapse}
 \alias{collapse}
 \title{Data checking and binning}
-\description{Collapses counts along equal levels binned covariates.}
+\description{Collapses counts along equal levels of binned covariates.}
 \usage{collapse(x,v,nquant=NULL)}
 \arguments{
 	\item{x}{Either matrix or Matrix of multinomial counts.}
