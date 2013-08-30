@@ -1,0 +1,5 @@
+import(Matrix)
+
+export(collapse,dmr)
+exportClasses(dmr)
+exportMethods(predict)
