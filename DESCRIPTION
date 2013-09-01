@@ -9,6 +9,6 @@ Extends: gamlr
 Description: Gamma-lasso path estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.  Optimal coefficients are chosen by an Information Criterion.   
 Maintainer: Matt Taddy <taddy@chicagobooth.edu>    
 License: GPL-3    
-URL: http://faculty.chicagobooth.edu/matt.taddy/index.html, https://github.com/mataddy/dmr
+URL: http://faculty.chicagobooth.edu/matt.taddy/index.html, https://github.com/mataddy/dmr  
 References: Taddy (2013) "Distributed Multinomial Regression", 
   Taddy (2013) "The Gamma Lasso"
