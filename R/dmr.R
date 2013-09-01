@@ -1,5 +1,5 @@
 
-setClass("dmr",contains="dgCMatrix",slots="lambda")
+setClass("dmr",representation(lambda="numeric"),contains="dgCMatrix")
 
 ##### Distributed Logistic Multinomial Regression  ######
 dmr <- function(counts, covars, bins=NULL, 
