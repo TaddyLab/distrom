@@ -5,7 +5,7 @@
 \description{Gamma-lasso path estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.  Optimal coefficents are chosen by an Information Criterion.}
 \usage{
 dmr(counts, covars, bins=NULL, 
-                cores=1, k=2, grouped=TRUE, ...)
+                cores=1, k=2, grouped=FALSE, ...)
 \method{predict}{dmr}(object,newdata,
 	type=c("link","response","reduction"), ...)
 }
@@ -21,7 +21,7 @@ with equal probabilities are also multinomial, the model is then fit to these co
  does no collapsing. }
 \item{cores}{The number of shared memory processor cores to pass to \code{mclapply}.}
 \item{k}{The information criteria penalty on degrees of freedom.  \code{k=2} is the AIC, \code{k=log(n)} is the BIC. }
-\item{grouped}{Whether to use a single shared \code{gamlr} penalty with minimum sum IC (information criterion) across response classes, or to use independently optimal penalization for each individual response dimension. }
+\item{grouped}{If \code{TRUE} use a single shared \code{gamlr} penalty with minimum sum IC (information criterion) across response classes, otherwise use independently optimal penalization for each individual response dimension. }
 \item{...}{Additional arguments to \code{gamlr}.}
 \item{object}{A fitted \code{dmr} coefficient matrix.}
 \item{newdata}{A Matrix with the same number of columns as \code{covars}, unless

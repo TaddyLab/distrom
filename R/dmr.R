@@ -3,7 +3,7 @@ setClass("dmr",representation(lambda="numeric"),contains="dgCMatrix")
 
 ##### Distributed Logistic Multinomial Regression  ######
 dmr <- function(counts, covars, bins=NULL, 
-                cores=1, k=2, grouped=TRUE, ...)
+                cores=1, k=2, grouped=FALSE, ...)
 {
   checked <- collapse(counts, covars, bins)
   x <- checked$x
@@ -31,7 +31,7 @@ dmr <- function(counts, covars, bins=NULL,
     if(is.infinite(mu[j]))
      return(matrix(0,nrow=ncol(v)))
     fit <- gamlr(v, x[,j], family="poisson", 
-                fix=mu, lambda.start=lambda.start)#, ...)
+                fix=mu, lambda.start=lambda.start, ...)
     if(length(fit$lambda)<100) print(j)
     fit$jdmr = j
     return(fit)
@@ -42,6 +42,10 @@ dmr <- function(counts, covars, bins=NULL,
 
   if(grouped){
     aic <- sapply(mods, function(fit) AIC(fit,k=k))
+    if(!inherits(aic,"matrix")){
+      nl <- max(sapply(aic,length))
+      aic <- sapply(aic,function(a) c(a,rep(Inf,nl-length(a))))
+    }
     seg <- rep(which.min(rowSums(aic)),length(mods))
   } else{ 
     seg <- sapply(mods, function(fit) which.min(AIC(fit,k=k))) 
