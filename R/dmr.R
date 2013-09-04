@@ -27,16 +27,23 @@ dmr <- function(counts, covars, bins=NULL,
     lambda.start <- max(g0/nrow(v))
   } else{ lambda.start = Inf }
 
-  grun <- function(xj){
-    fit <- gamlr(v, xj, family="poisson", 
-                fix=mu, lambda.start=lambda.start, ...)
+  grun <- function(j){
+    require(Matrix)
+    require(gamlr)
+    fit <- gamlr(v, x[,j], family="poisson", 
+                fix=mu, lambda.start=lambda.start)#, ...)
     if(length(fit$lambda)<100) print(j)
+    fit$j <- j
     return(fit)
   }
 
-  xlist <- lapply(colnames(x), function(j) x[,j,drop=FALSE])  
-  names(xlist) <- colnames(x)
-  mods <- mclapply(xlist, grun, mc.cores=cores)
+  cl <- makeCluster("localhost", nnodes=cores)
+  clusterExport(cl, 
+    c("v","x","mu","lambda.start"),
+    envir=environment())
+  mods <- parLapply(cl, colnames(x), grun)
+  names(mods) <- sapply(mods, function(f) f$j)
+  stopCluster(cl)
 
   if(grouped){
     aic <- sapply(mods, function(fit) AIC(fit,k=k))
