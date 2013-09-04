@@ -29,7 +29,7 @@ dmr <- function(counts, covars, bins=NULL,
 
   grun <- function(xj){
     fit <- gamlr(v, xj, family="poisson", 
-                fix=mu, lambda.start=lambda.start)#, ...)
+                fix=mu, lambda.start=lambda.start, ...)
     if(length(fit$lambda)<100) print(j)
     return(fit)
   }
