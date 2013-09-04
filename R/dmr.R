@@ -9,7 +9,7 @@ dmr <- function(counts, covars, bins=NULL,
   x <- checked$x
   v <- checked$v
 
-  mu <- rowSums(x)/ncol(x)
+  mu <- rowMeans(x)
   nz <- mu>0
   mu <- mu[nz]
   x <- x[nz,]
@@ -27,18 +27,16 @@ dmr <- function(counts, covars, bins=NULL,
     lambda.start <- max(g0/nrow(v))
   } else{ lambda.start = Inf }
 
-  grun <- function(j){
-    if(is.infinite(mu[j]))
-     return(matrix(0,nrow=ncol(v)))
-    fit <- gamlr(v, x[,j], family="poisson", 
-                fix=mu, lambda.start=lambda.start, ...)
+  grun <- function(xj){
+    fit <- gamlr(v, xj, family="poisson", 
+                fix=mu, lambda.start=lambda.start)#, ...)
     if(length(fit$lambda)<100) print(j)
-    fit$jdmr = j
     return(fit)
   }
 
-  mods <- mclapply(colnames(x), grun, mc.cores=cores)
-  names(mods) <- sapply(mods,function(fit) fit$jdmr)
+  xlist <- lapply(colnames(x), function(j) x[,j,drop=FALSE])  
+  names(xlist) <- colnames(x)
+  mods <- mclapply(xlist, grun, mc.cores=cores)
 
   if(grouped){
     aic <- sapply(mods, function(fit) AIC(fit,k=k))
