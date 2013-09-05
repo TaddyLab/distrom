@@ -19,7 +19,7 @@ dmr(counts, covars, bins=NULL,
 \item{bins}{Number of bins into which we will attempt to collapse each column of \code{covars}.  Since sums of multinomials 
 with equal probabilities are also multinomial, the model is then fit to these collapsed `observations'. \code{bins=NULL}
  does no collapsing. }
-\item{cores}{The number of shared memory processor cores to pass to \code{mclapply}.}
+\item{cores}{The number of shared memory processor cores to pass to \code{mclapply}.  Note that since \code{mclapply} uses forking, \code{cores} >1 will fail on windows; sorry.  }
 \item{k}{The information criteria penalty on degrees of freedom.  \code{k=2} is the AIC, \code{k=log(n)} is the BIC. }
 \item{grouped}{If \code{TRUE} use a single shared \code{gamlr} penalty with minimum sum IC (information criterion) across response classes, otherwise use independently optimal penalization for each individual response dimension. }
 \item{...}{Additional arguments to \code{gamlr}.}

@@ -28,16 +28,16 @@ dmr <- function(counts, covars, bins=NULL,
   } else{ lambda.start = Inf }
 
   grun <- function(xj){
-    require(Matrix)
-    require(gamlr)
     fit <- gamlr(v, xj, family="poisson", 
                 fix=mu, lambda.start=lambda.start, ...)
-    if(length(fit$lambda)<100) print(j)
+    if(length(fit$lambda)<100) print(colnames(xj))
     return(fit)
   }
 
-  x <- lapply(colnames(x),function(j) x[,j,drop=FALSE])
-  mods <- mclapply(x, grun)
+  xvar <- colnames(x)
+  x <- lapply(xvar, function(j) x[,j,drop=FALSE])
+  names(x) <- xvar
+  mods <- mclapply(x, grun, mc.cores=cores)
 
   if(grouped){
     aic <- sapply(mods, function(fit) AIC(fit,k=k))
@@ -55,9 +55,10 @@ dmr <- function(counts, covars, bins=NULL,
 
   lambda <- mapply(function(f,s) f$lambda[s], mods, seg)
 
-  zebra <- match(colnames(x),colnames(B))
+  zebra <- match(xvar,colnames(B))
   B <- as(as(B[,zebra],"dgCMatrix"),"dmr")
   B@lambda <- as.numeric(lambda[zebra])
+  names(B@lambda) <- names(lambda[zebra])
   return(B)
 }
 
