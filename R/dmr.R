@@ -28,6 +28,8 @@ dmr <- function(counts, covars, bins=NULL,
     lambda.start <- max(g0/nrow(v))
   } else{ lambda.start = Inf }
 
+  ##### parallel computing material
+
   grun <- function(xj){
     require(Matrix)
     require(gamlr)
@@ -41,16 +43,15 @@ dmr <- function(counts, covars, bins=NULL,
   x <- lapply(xvar, function(j) x[,j,drop=FALSE])
   names(x) <- xvar
 
-  ## parallel computing
   if(is.null(type)){
     if(.Platform$OS.type == "unix") type <- "FORK"
     else type <- "PSOCK"
   }
-
   cl <- makeCluster(cores,type=type) 
-  #clusterExport(cl, c("v","mu","lambda.start"), envir=environment())
   mods <- parLapplyLB(cl,x,grun)
   stopCluster(cl)
+
+  #######
 
   if(grouped){
     aic <- sapply(mods, function(fit) AIC(fit,k=k))
