@@ -3,7 +3,8 @@ setClass("dmr",representation(lambda="numeric"),contains="dgCMatrix")
 
 ##### Distributed Logistic Multinomial Regression  ######
 dmr <- function(counts, covars, bins=NULL, 
-                cores=1, k=2, grouped=FALSE, ...)
+                k=2, grouped=FALSE, 
+                cores=1, type=NULL, ...)
 {
   checked <- collapse(counts, covars, bins)
   x <- checked$x
@@ -28,6 +29,8 @@ dmr <- function(counts, covars, bins=NULL,
   } else{ lambda.start = Inf }
 
   grun <- function(xj){
+    require(Matrix)
+    require(gamlr)
     fit <- gamlr(v, xj, family="poisson", 
                 fix=mu, lambda.start=lambda.start, ...)
     if(length(fit$lambda)<100) print(colnames(xj))
@@ -37,7 +40,17 @@ dmr <- function(counts, covars, bins=NULL,
   xvar <- colnames(x)
   x <- lapply(xvar, function(j) x[,j,drop=FALSE])
   names(x) <- xvar
-  mods <- mclapply(x, grun, mc.cores=cores)
+
+  ## parallel computing
+  if(is.null(type)){
+    if(.Platform$OS.type == "unix") type <- "FORK"
+    else type <- "PSOCK"
+  }
+
+  cl <- makeCluster(cores,type=type) 
+  #clusterExport(cl, c("v","mu","lambda.start"), envir=environment())
+  mods <- parLapplyLB(cl,x,grun)
+  stopCluster(cl)
 
   if(grouped){
     aic <- sapply(mods, function(fit) AIC(fit,k=k))
