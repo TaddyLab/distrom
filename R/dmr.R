@@ -29,12 +29,11 @@ dmr <- function(counts, covars, bins=NULL,
   } else{ lambda.start = Inf }
 
   ##### parallel computing material
-
   grun <- function(xj){
     require(Matrix)
     require(gamlr)
     fit <- gamlr(v, xj, family="poisson", 
-                fix=mu, lambda.start=lambda.start, ...)
+                fix=log(mu), lambda.start=lambda.start, ...)
     if(length(fit$lambda)<100) print(colnames(xj))
     return(fit)
   }
