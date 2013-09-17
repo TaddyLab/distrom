@@ -9,15 +9,12 @@ dmr <- function(counts, covars, bins=NULL,
   checked <- collapse(counts, covars, bins)
   x <- checked$x
   v <- checked$v
-
-  mu <- rowMeans(x)
-  nz <- mu>0
-  mu <- mu[nz]
-  x <- x[nz,]
-  v <- v[nz,,drop=FALSE]
+  u <- rowMeans(x)
+  bn <- checked$n
+  if(is.null(bn)) bn <- rep(1,length(u))
 
   if(grouped){  
-    e0 = x-outer(mu,colSums(x)/sum(mu))
+    e0 = x-outer(u,colSums(x)/sum(u))
     g0 = abs(t(v)%*%e0)
     std = list(...)$standardize
     if(is.null(std)) std = TRUE
@@ -28,20 +25,19 @@ dmr <- function(counts, covars, bins=NULL,
     lambda.start <- max(g0/nrow(v))
   } else{ lambda.start = Inf }
 
-  xvar <- colnames(x)
-  x <- lapply(xvar, function(j) x[,j,drop=FALSE])
-  names(x) <- xvar
-
   grun <- function(xj){
     require(Matrix)
     require(gamlr)
     fit <- gamlr(v, xj, family="poisson", 
-                fix=log(mu), lambda.start=lambda.start, ...)
+                fix=log(bn+u), lambda.start=lambda.start, ...)
     if(length(fit$lambda)<100) print(colnames(xj))
     return(fit)
   }
 
   ##### parallel computing
+  xvar <- colnames(x)
+  x <- lapply(xvar,function(j) x[,j,drop=FALSE])
+  names(x) <- xvar
   mods <- mclapply(x,grun,mc.cores=cores)
   #######
 
