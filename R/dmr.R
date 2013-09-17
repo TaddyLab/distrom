@@ -4,7 +4,7 @@ setClass("dmr",representation(lambda="numeric"),contains="dgCMatrix")
 ##### Distributed Logistic Multinomial Regression  ######
 dmr <- function(counts, covars, bins=NULL, 
                 k=2, grouped=FALSE, 
-                cores=1, type=NULL, ...)
+                cores=1, ...)
 {
   checked <- collapse(counts, covars, bins)
   x <- checked$x
@@ -28,7 +28,10 @@ dmr <- function(counts, covars, bins=NULL,
     lambda.start <- max(g0/nrow(v))
   } else{ lambda.start = Inf }
 
-  ##### parallel computing material
+  xvar <- colnames(x)
+  x <- lapply(xvar, function(j) x[,j,drop=FALSE])
+  names(x) <- xvar
+
   grun <- function(xj){
     require(Matrix)
     require(gamlr)
@@ -38,18 +41,8 @@ dmr <- function(counts, covars, bins=NULL,
     return(fit)
   }
 
-  xvar <- colnames(x)
-  x <- lapply(xvar, function(j) x[,j,drop=FALSE])
-  names(x) <- xvar
-
-  if(is.null(type)){
-    if(.Platform$OS.type == "unix") type <- "FORK"
-    else type <- "PSOCK"
-  }
-  cl <- makeCluster(cores,type=type) 
-  mods <- parLapplyLB(cl,x,grun)
-  stopCluster(cl)
-
+  ##### parallel computing
+  mods <- mclapply(x,grun,mc.cores=cores)
   #######
 
   if(grouped){

@@ -20,10 +20,9 @@ dmr(counts, covars, bins=NULL,
 \item{bins}{Number of bins into which we will attempt to collapse each column of \code{covars}.  Since sums of multinomials 
 with equal probabilities are also multinomial, the model is then fit to these collapsed `observations'. \code{bins=NULL}
  does no collapsing. }
-\item{cores}{The number of shared memory processor cores to pass to \code{parLapplyLB}.}
-\item{type}{For \code{dmr}, this is  the \code{type} argument to \code{makeCluster}.  The default on unix machines is FORK, which is usually faster, but for Windows we are limited to PSOCK.  See \code{help(makeCluster)} for details from the 
-\code{parallel} package. 
-
+\item{cores}{The number of shared memory processor 
+	cores to pass to \code{mclapply}.}
+\item{type}{
 For \code{predict.dmr}, this is the scale upon which you want prediction. Under "link", just the linear map \code{newdata} times \code{object}, under "response" the fitted multinomial probabilities, and under "reduction" the MNIR sufficient reduction \eqn{F\phi/m}.}
 \item{k}{The information criteria penalty on degrees of freedom.  \code{k=2} is the AIC, \code{k=log(n)} is the BIC. }
 \item{grouped}{If \code{TRUE} use a single shared \code{gamlr} penalty with minimum sum IC (information criterion) across response classes, otherwise use independently optimal penalization for each individual response dimension. }
@@ -37,7 +36,7 @@ For \code{predict.dmr}, this is the scale upon which you want prediction. Under 
 	\deqn{
 	x_{ij} \sim Po(exp[\mu_i + \alpha_j + \beta v_i ]).
 	}
-	We plug-in estimate \eqn{\hat\mu_i = m_i/p}, where \eqn{m_i = \sum_j x_{ij}} and \eqn{p} is the dimension of \eqn{x_i}.  Then each individual is outsourced to Poisson regression in the \code{gamlr} package via the \code{parLapplyLB} function of the \code{parallel} library.  \code{gamlr} fits regularization paths of possible coefficients, and returns the best according to \code{AIC} with \code{k} as specified here (either a single shared penalty, or individual; see the \code{grouped} argument).  The combined coefficients across all dimensions are then returned from \code{dmr}.
+	We plug-in estimate \eqn{\hat\mu_i = m_i/p}, where \eqn{m_i = \sum_j x_{ij}} and \eqn{p} is the dimension of \eqn{x_i}.  Then each individual is outsourced to Poisson regression in the \code{gamlr} package via the \code{mclapply} function of the \code{parallel} library.  \code{gamlr} fits regularization paths of possible coefficients, and returns the best according to \code{AIC} with \code{k} as specified here (either a single shared penalty, or individual; see the \code{grouped} argument).  The combined coefficients across all dimensions are then returned from \code{dmr}.
 }
 \value{ A \code{dmr} covariate matrix, which inherits the \code{dgCMatrix} class as defined in the \code{Matrix} library.  This is the \code{ncol(covars)} by \code{ncol(counts)} matrix of logistic regression coefficients chosen by AIC from the regularization paths for each category. It includes the extra slot \code{lambda}: the selected \code{gamlr} penalty for each coefficient. See \code{help(dmr-class)}. }
 \references{
