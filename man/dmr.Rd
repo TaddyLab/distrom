@@ -6,7 +6,7 @@
 \usage{
 dmr(counts, covars, bins=NULL, 
                 k=2, grouped=FALSE, 
-                cores=1, type=NULL, ...)
+                cores=1,  ...)
 \method{predict}{dmr}(object,newdata,
 	type=c("link","response","reduction"), ...)
 }
