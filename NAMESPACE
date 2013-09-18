@@ -1,4 +1,6 @@
 import(Matrix)
+import(gamlr)
+import(methods)
 
 export(collapse,dmr)
 exportClasses(dmr)

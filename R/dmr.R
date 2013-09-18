@@ -13,24 +13,27 @@ dmr <- function(counts, covars, bins=NULL,
   bn <- checked$n
   if(is.null(bn)) bn <- rep(1,length(u))
 
-  if(grouped){  
-    e0 = x-outer(u,colSums(x)/sum(u))
-    g0 = abs(t(v)%*%e0)
-    std = list(...)$standardize
-    if(is.null(std)) std = TRUE
-    if(std){
-      vs <- sqrt(colSums(v^2)/nrow(v) - colMeans(v)^2)
-      g0 <- g0/vs
-    }
-    lambda.start <- max(g0/nrow(v))
-  } else{ lambda.start = Inf }
+  argl <- list(...)
+  if(is.null(argl$lambda.start))
+  { if(grouped){  
+      e0 = x-outer(u,colSums(x)/sum(u))
+      g0 = abs(t(v)%*%e0)
+      std = list(...)$standardize
+      if(is.null(std)) std = TRUE
+      if(std){
+        vs <- sqrt(colSums(v^2)/nrow(v) - colMeans(v)^2)
+        g0 <- g0/vs
+      }
+      lambda.start <- max(g0/nrow(v))
+    } else{ lambda.start = Inf }
+  } else{ lambda.start = argl$lambda.start }
+  if(is.null(argl$nlambda)) nlambda <- 100
+  else nlambda <- argl$nlambda
 
   grun <- function(xj){
-    require(Matrix)
-    require(gamlr)
     fit <- gamlr(v, xj, family="poisson", 
-                fix=log(bn+u), lambda.start=lambda.start, ...)
-    if(length(fit$lambda)<100) print(colnames(xj))
+                fix=log(bn+u), lambda.start=lambda.start, nlambda=nlambda, ...)
+    if(length(fit$lambda)<nlambda) print(colnames(xj))
     return(fit)
   }
 
