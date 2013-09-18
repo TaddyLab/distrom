@@ -6,13 +6,16 @@ dmr <- function(counts, covars, bins=NULL,
                 k=2, grouped=FALSE, 
                 cores=1, ...)
 {
-  checked <- collapse(counts, covars, bins)
-  x <- checked$x
-  v <- checked$v
-  u <- rowMeans(x)
-  bn <- checked$n
-  if(is.null(bn)) bn <- rep(1,length(u))
+  chk <- collapse(counts, covars, bins)
+  x <- chk$x
+  v <- chk$v
 
+  ## calculate fixed shift
+  u <- rowMeans(x)
+  nbin <- ifelse(is.null(chk$n),1,chk$n)
+  mu <- log(nbin + u)
+
+  ## set some path arguments
   argl <- list(...)
   if(is.null(argl$lambda.start))
   { if(grouped){  
@@ -27,37 +30,40 @@ dmr <- function(counts, covars, bins=NULL,
       lambda.start <- max(g0/nrow(v))
     } else{ lambda.start = Inf }
   } else{ lambda.start = argl$lambda.start }
-  if(is.null(argl$nlambda)) nlambda <- 100
+  if(is.null(argl$nlambda)) argl$nlambda <- 100
   else nlambda <- argl$nlambda
 
+  ## inner function
   grun <- function(xj){
     fit <- gamlr(v, xj, family="poisson", 
-                fix=log(bn+u), lambda.start=lambda.start, nlambda=nlambda, ...)
-    if(length(fit$lambda)<nlambda) print(colnames(xj))
+                fix=mu, 
+                lambda.start=lambda.start, ...)
+    if(length(fit$lambda)<argl$nlambda) 
+      write(colnames(xj),stderr())
     return(fit)
   }
 
-  ##### parallel computing
+  ## parallel computing
   xvar <- colnames(x)
   x <- lapply(xvar,function(j) x[,j,drop=FALSE])
   names(x) <- xvar
   mods <- mclapply(x,grun,mc.cores=cores)
-  #######
 
+  ## model selection
   if(grouped){
     aic <- sapply(mods, function(fit) AIC(fit,k=k))
     if(!inherits(aic,"matrix")){
       nl <- max(sapply(aic,length))
-      aic <- sapply(aic,function(a) c(a,rep(Inf,nl-length(a))))
+      aic <- sapply(aic,function(a) c(a,rep(NA,nl-length(a))))
     }
-    seg <- rep(which.min(rowSums(aic)),length(mods))
+    seg <- rep(which.min(rowSums(aic, na.rm=TRUE)),length(mods))
   } else{ 
     seg <- sapply(mods, function(fit) which.min(AIC(fit,k=k))) 
   }
   
+  ## process, match names, and output
   B <- mapply(function(f,s) as.matrix(coef(f,s)), mods, seg)
   rownames(B) <- c("intercept",colnames(v))
-
   lambda <- mapply(function(f,s) f$lambda[s], mods, seg)
 
   zebra <- match(xvar,colnames(B))
