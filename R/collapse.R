@@ -1,7 +1,7 @@
   
 #####  argument checking and binning #####
 
-collapse <- function(x,v,nquant=NULL){
+collapse <- function(x,v,bins=NULL){
 
 	if(inherits(v,c("Matrix","simple_triplet_matrix")))
 		v <- as.matrix(v)
@@ -23,10 +23,10 @@ collapse <- function(x,v,nquant=NULL){
   x=as(x,"dgCMatrix") 
   if(is.null(colnames(x))) colnames(x) <- 1:ncol(x)
 
-  if(is.null(nquant)) 
+  if(is.null(bins)) 
     return(list(x=x,v=v,n=rep.int(1,nrow(x))))
 
-  qs <- (0:nquant)/nquant
+  qs <- (0:bins)/bins
   B <- apply(v,2,function(v)
     cut(v, breaks=unique(quantile(v, qs)), include.lowest=TRUE))
   I <- interaction(as.data.frame(B), drop=TRUE)
