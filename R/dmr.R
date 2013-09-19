@@ -90,7 +90,10 @@ coef.dmr <- function(object, select=NULL, grouped=TRUE, k=2, ...){
   lambda <- mapply(function(f,s) f$lambda[s], object, select)
 
   B <- as(as(B,"dgCMatrix"),"dmrcoef")
-  B@lambda <- lambda
+  if(grouped){
+    B@lambda <- unique(lambda)
+    names(B@lambda) <- sprintf("seg%d",select[1])
+  } else B@lambda <- lambda
   return(B)
 }
 
