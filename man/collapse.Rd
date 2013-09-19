@@ -10,9 +10,10 @@
 }
 \details{
 	For each column of \code{v}, aggregates
-	the observations into \code{nquant} bins defined by their average value.  Both \code{v} and \code{x} are then collapsed according to levels of the interaction across implied bin-factors.
+	the observations into \code{nquant} bins defined by their average value.  Both \code{v} and \code{x} are then collapsed according to levels of the interaction across implied bin-factors, and the number
+	of observations in each bin is recorded as \code{n}.
 }
-\value{A list containing collapsed and formatted \code{x} and \code{v}.}
+\value{A list containing collapsed and formatted \code{x}, \code{v}, and \code{n}.}
 \author{
   Matt Taddy \email{taddy@chicagobooth.edu}
 }

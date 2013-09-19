@@ -34,7 +34,9 @@ Matt Taddy, \email{taddy@chicagobooth.edu}
 \examples{
 ## some multinomial inverse regression
 data(we8there)
-B <- dmr(we8thereCounts, we8thereRatings$Overall, bins=5,cores=4)
+fits <- dmr(we8thereCounts, we8thereRatings$Overall, 
+			bins=detectCores(),cores=4)
+B <- coef(fits)
 Z <- predict(B,we8thereCounts,type="reduction")
 summary(fwd <- lm(we8thereRatings$Overall ~ Z))
 plot(fwd$fitted ~ factor(we8thereRatings$Overall))

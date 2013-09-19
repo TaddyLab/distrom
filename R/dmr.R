@@ -1,10 +1,11 @@
 
-setClass("dmr",representation(lambda="numeric"),contains="dgCMatrix")
+setClass("dmrcoef",
+  representation(lambda="numeric"), 
+  contains="dgCMatrix")
 
 ##### Distributed Logistic Multinomial Regression  ######
 dmr <- function(counts, covars, bins=NULL, 
-                k=2, grouped=FALSE, 
-                cores=1, ...)
+                lambda.start=NULL, cores=1, ...)
 {
   chk <- collapse(counts, covars, bins)
   x <- chk$x
@@ -12,34 +13,35 @@ dmr <- function(counts, covars, bins=NULL,
 
   ## calculate fixed shift
   u <- rowMeans(x)
-  nbin <- ifelse(is.null(chk$n),1,chk$n)
-  mu <- log(nbin + u)
+  mu <- log(chk$n + u)
 
-  ## set some path arguments
+  ## set path 
+  if(is.null(lambda.start))
+  {   
+    e0 = x-outer(u,colSums(x)/sum(u))
+    g0 = abs(t(v)%*%e0)
+    std = list(...)$standardize
+    if(is.null(std)) std = TRUE
+    if(std){
+      vs <- sqrt(colSums(v^2)/nrow(v) - colMeans(v)^2)
+      g0 <- g0/vs
+    }
+    lambda.start <- max(g0/nrow(v)) 
+  }
+
+  ## grab defaults
   argl <- list(...)
-  if(is.null(argl$lambda.start))
-  { if(grouped){  
-      e0 = x-outer(u,colSums(x)/sum(u))
-      g0 = abs(t(v)%*%e0)
-      std = list(...)$standardize
-      if(is.null(std)) std = TRUE
-      if(std){
-        vs <- sqrt(colSums(v^2)/nrow(v) - colMeans(v)^2)
-        g0 <- g0/vs
-      }
-      lambda.start <- max(g0/nrow(v))
-    } else{ lambda.start = Inf }
-  } else{ lambda.start = argl$lambda.start }
-  if(is.null(argl$nlambda)) argl$nlambda <- 100
-  else nlambda <- argl$nlambda
+  nlambda <- ifelse(is.null(argl$nlambda),
+                    formals(gamlr)$nlambda,
+                    argl$nlambda)
 
-  ## inner function
+  ## inner loop function
   grun <- function(xj){
     fit <- gamlr(v, xj, family="poisson", 
                 fix=mu, 
                 lambda.start=lambda.start, ...)
-    if(length(fit$lambda)<argl$nlambda) 
-      write(colnames(xj),stderr())
+    if(length(fit$lambda)<nlambda) 
+        write(colnames(xj),stderr())
     return(fit)
   }
 
@@ -47,38 +49,64 @@ dmr <- function(counts, covars, bins=NULL,
   xvar <- colnames(x)
   x <- lapply(xvar,function(j) x[,j,drop=FALSE])
   names(x) <- xvar
-  mods <- mclapply(x,grun,mc.cores=cores)
+  mods <- mclapply(x,grun,mc.cores=cores)[xvar]
+  class(mods) <- "dmr"
+  attr(mods,"nobs") <- sum(chk$n)
+  return(mods)
+}
 
-  ## model selection
-  if(grouped){
-    aic <- sapply(mods, function(fit) AIC(fit,k=k))
-    if(!inherits(aic,"matrix")){
-      nl <- max(sapply(aic,length))
-      aic <- sapply(aic,function(a) c(a,rep(NA,nl-length(a))))
+logLik.dmr <- function(object, ...){
+  dev <- sapply(object, function(fit) fit$dev)
+  df <- sapply(object, function(fit) fit$df)
+  if(!inherits(dev,"matrix")){
+      nl <- max(sapply(dev,length))
+      dev <- sapply(dev,function(a) c(a,rep(NA,nl-length(a))))
+      df <- sapply(df,function(a) c(a,rep(NA,nl-length(a))))
     }
-    seg <- rep(which.min(rowSums(aic, na.rm=TRUE)),length(mods))
-  } else{ 
-    seg <- sapply(mods, function(fit) which.min(AIC(fit,k=k))) 
-  }
-  
-  ## process, match names, and output
-  B <- mapply(function(f,s) as.matrix(coef(f,s)), mods, seg)
-  rownames(B) <- c("intercept",colnames(v))
-  lambda <- mapply(function(f,s) f$lambda[s], mods, seg)
 
-  zebra <- match(xvar,colnames(B))
-  B <- as(as(B[,zebra],"dgCMatrix"),"dmr")
-  B@lambda <- as.numeric(lambda[zebra])
-  names(B@lambda) <- names(lambda[zebra])
+  ll <- -0.5*dev
+  attr(ll,"nobs") = attributes(object)$nobs
+  attr(ll,"df") = df
+  class(ll) <- "logLik"
+  ll
+}
+
+coef.dmr <- function(object, select=NULL, grouped=TRUE, k=2, ...){
+  ## model selection
+  if(is.null(select)){
+    aic <- AIC(object,k=k)
+    if(grouped) 
+      select <- which.min(rowSums(aic, na.rm=TRUE))
+    else{
+      select <- apply(aic, 2, which.min)
+      select <- sapply(select, 
+        function(s) ifelse(length(s)==0,1,s))
+    }
+  }
+  if(length(select)==1) select <- rep(select, ncol(aic))
+
+  ## process, match names, and output
+  B <- mapply(function(f,s) as.matrix(coef(f,s)), object, select)
+  lambda <- mapply(function(f,s) f$lambda[s], object, select)
+
+  B <- as(as(B,"dgCMatrix"),"dmrcoef")
+  B@lambda <- lambda
   return(B)
 }
 
-## method predict function
+## method predict functions
 predict.dmr <- function(object, newdata, 
+                    type=c("link","response","reduction"), ...){
+  B <- coef(object, ...)
+  predict(B,newdata=newdata,type=type)
+}
+
+predict.dmrcoef <- function(object, newdata, 
                   type=c("link","response","reduction"), ...)
 {
   if(is.vector(newdata)){ newdata <- matrix(newdata, nrow=1) }
   if(is.data.frame(newdata)){ newdata <- as.matrix(newdata) }
+
 
   type=match.arg(type)
   if(type=="reduction"){
@@ -101,4 +129,4 @@ predict.dmr <- function(object, newdata,
 }
 
 setGeneric("predict")
-setMethod("predict","dmr",predict.dmr)
+setMethod("predict","dmrcoef",predict.dmrcoef)

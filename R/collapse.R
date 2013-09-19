@@ -23,7 +23,8 @@ collapse <- function(x,v,nquant=NULL){
   x=as(x,"dgCMatrix") 
   if(is.null(colnames(x))) colnames(x) <- 1:ncol(x)
 
-  if(is.null(nquant)) return(list(x=x,v=v))
+  if(is.null(nquant)) 
+    return(list(x=x,v=v,n=rep.int(1,nrow(x))))
 
   qs <- (0:nquant)/nquant
   B <- apply(v,2,function(v)

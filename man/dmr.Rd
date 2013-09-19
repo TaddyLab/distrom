@@ -1,12 +1,15 @@
 \name{dmr}
 \alias{dmr}
+\alias{logLik.dmr}
 \alias{predict.dmr}
+\alias{coef.dmr}
 \title{Distributed Multinomial Regression}
-\description{Gamma-lasso path estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.  Optimal coefficents are chosen by an Information Criterion.}
+\description{Gamma-lasso path estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.}
 \usage{
 dmr(counts, covars, bins=NULL, 
-                k=2, grouped=FALSE, 
-                cores=1,  ...)
+    lambda.start=NULL, cores=1,  ...)
+\method{logLik}{dmr}(object, ...)
+\method{coef}{dmr}(object, select=NULL, grouped=TRUE, k=2, ...)
 \method{predict}{dmr}(object,newdata,
 	type=c("link","response","reduction"), ...)
 }
@@ -20,25 +23,32 @@ dmr(counts, covars, bins=NULL,
 \item{bins}{Number of bins into which we will attempt to collapse each column of \code{covars}.  Since sums of multinomials 
 with equal probabilities are also multinomial, the model is then fit to these collapsed `observations'. \code{bins=NULL}
  does no collapsing. }
+\item{lambda.start}{Where to start each regularization path.  If \code{NULL} it uses the maximum absolute gradient across all categories (i.e. the smallest \eqn{lambda} such that all coefficients are set to zero). }
 \item{cores}{The number of shared memory processor 
 	cores to pass to \code{mclapply}.}
+\item{select}{For \code{coef.dmr}, this is the index of the 
+regularization paths from which you want estimates.  Can either be a single value for all categories or a vector of values, one for each category.  If left \code{NULL} the coefficients are selected via an information criteria according to arguments \code{k} and \code{grouped}.}
+\item{k}{The information criteria penalty on degrees of freedom.  \code{k=2} is the AIC, \code{k=log(n)} is the BIC. }
+\item{grouped}{For \code{coef.dmr} with \code{select=NULL}, model selection under \code{grouped=TRUE} use a single shared \code{gamlr} penalty with minimum sum IC (information criterion) across response classes. Otherwise coefficients are returned at IC-optimal penalization for each individual response dimension. }
 \item{type}{
 For \code{predict.dmr}, this is the scale upon which you want prediction. Under "link", just the linear map \code{newdata} times \code{object}, under "response" the fitted multinomial probabilities, and under "reduction" the MNIR sufficient reduction \eqn{F\phi/m}.}
-\item{k}{The information criteria penalty on degrees of freedom.  \code{k=2} is the AIC, \code{k=log(n)} is the BIC. }
-\item{grouped}{If \code{TRUE} use a single shared \code{gamlr} penalty with minimum sum IC (information criterion) across response classes, otherwise use independently optimal penalization for each individual response dimension. }
-\item{...}{Additional arguments to \code{gamlr}.}
-\item{object}{A fitted \code{dmr} coefficient matrix.}
 \item{newdata}{A Matrix with the same number of columns as \code{covars}, unless
 \code{type="reduction"} in which case \code{newdata} is multinomial category count data with the same number of columns as \code{counts}.}
+\item{...}{Additional arguments to \code{gamlr} from \code{dmr} or to \code{coef.dmr} from \code{predict.dmr}.}
+\item{object}{A \code{dmr} list of fitted \code{gamlr} models for each response category. }
 }
 \details{
 	\code{dmr} fits multinomial logistic regression by assuming that, unconditionally on the `size' (total count across categories) each individual category count has been generated as a Poisson
 	\deqn{
 	x_{ij} \sim Po(exp[\mu_i + \alpha_j + \beta v_i ]).
 	}
-	We plug-in estimate \eqn{\hat\mu_i = m_i/p}, where \eqn{m_i = \sum_j x_{ij}} and \eqn{p} is the dimension of \eqn{x_i}.  Then each individual is outsourced to Poisson regression in the \code{gamlr} package via the \code{mclapply} function of the \code{parallel} library.  \code{gamlr} fits regularization paths of possible coefficients, and returns the best according to \code{AIC} with \code{k} as specified here (either a single shared penalty, or individual; see the \code{grouped} argument).  The combined coefficients across all dimensions are then returned from \code{dmr}.
+	We plug-in estimate \eqn{\hat\mu_i = log(m_i/p +1)}, where \eqn{m_i = \sum_j x_{ij}} and \eqn{p} is the dimension of \eqn{x_i}.  Then each individual is outsourced to Poisson regression in the \code{gamlr} package via the \code{mclapply} function of the \code{parallel} library.  The output from \code{dmr} is a list of \code{gamlr} fitted models.
+
+	\code{coef.dmr} builds a matrix of multinomial logistic regression coefficients from the \code{length(object)} list of \code{gamlr} fits. Model selection is either specified via \code{select} or (more likely) done according to \code{AIC} with \code{k} as specified here (either a single shared penalty, or individual; see the \code{grouped} argument).  The combined coefficients across all dimensions are then returned as a \code{dmrcoef} s4-class object.
+
+	\code{predict.dmr} takes either a \code{dmr} or \code{dmrcoef} object and returns predicted values for \code{newdata} on the scale defined by the \code{type} argument.
 }
-\value{ A \code{dmr} covariate matrix, which inherits the \code{dgCMatrix} class as defined in the \code{Matrix} library.  This is the \code{ncol(covars)} by \code{ncol(counts)} matrix of logistic regression coefficients chosen by AIC from the regularization paths for each category. It includes the extra slot \code{lambda}: the selected \code{gamlr} penalty for each coefficient. See \code{help(dmr-class)}. }
+\value{  An \code{ncol(counts)} length list of fitted \code{gamlr} objects.  }
 \references{
 Taddy (2013) The Gamma Lasso
 
@@ -49,12 +59,13 @@ Taddy (2013) Distributed Multinomial Regression
 
 library(MASS)
 data(fgl)
-B <- dmr(fgl$type, fgl[,1:9])
+fits <- dmr(fgl$type, fgl[,1:9])
+B <- coef(fits)
 log(B@lambda)
 P <- predict(B, fgl[,1:9], type="response")
 boxplot(P[cbind(1:214,fgl$type)]~fgl$type, 
 	ylab="fitted prob of true class")
 
 }
-\seealso{\code{dmr-class}, and examples in \code{we8there}, and the \code{gamlr} package.}
+\seealso{\code{dmrcoef-class} and the \code{gamlr} package.}
 

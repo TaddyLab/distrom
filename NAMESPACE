@@ -3,5 +3,9 @@ import(gamlr)
 import(methods)
 
 export(collapse,dmr)
-exportClasses(dmr)
+S3method(coef,dmr)
+S3method(predict,dmr)
+S3method(logLik,dmr)
+
+exportClasses(dmrcoef)
 exportMethods(predict)
