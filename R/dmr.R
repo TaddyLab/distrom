@@ -12,21 +12,21 @@ dmr <- function(counts, covars, bins=NULL,
   v <- chk$v
 
   ## calculate fixed shift
-  u <- rowMeans(x)
-  mu <- log(chk$n + u)
+  u <- rowMeans(x) + chk$n
+  mu <- log(u)
 
   ## set path 
   if(is.null(lambda.start))
-  {   
+  {  
     e0 = x-outer(u,colSums(x)/sum(u))
     g0 = abs(t(v)%*%e0)
     std = list(...)$standardize
     if(is.null(std)) std = TRUE
     if(std){
       vs <- sqrt(colSums(v^2)/nrow(v) - colMeans(v)^2)
-      g0 <- g0/vs
+      g0 <- g0/(vs*nrow(v))
     }
-    lambda.start <- max(g0/nrow(v)) 
+    lambda.start <- max(g0) 
   }
 
   ## grab defaults
@@ -50,6 +50,8 @@ dmr <- function(counts, covars, bins=NULL,
   x <- lapply(xvar,function(j) x[,j,drop=FALSE])
   names(x) <- xvar
   mods <- mclapply(x,grun,mc.cores=cores)[xvar]
+
+  ## classy exit
   class(mods) <- "dmr"
   attr(mods,"nobs") <- sum(chk$n)
   attr(mods,"cores") <- cores

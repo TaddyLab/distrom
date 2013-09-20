@@ -56,7 +56,8 @@ fwd$fitted[fwd$fitted<1] <- 1
 fwd$fitted[fwd$fitted>5] <- 5
 
 ## plot the fitted rating by true rating
-plot(fwd$fitted ~ factor(we8thereRatings$Overall), col="lightslategrey")
+plot(fwd$fitted ~ factor(we8thereRatings$Overall), 
+	varwidth=TRUE, col="lightslategrey")
 
 ## plot fits for a few individual terms
 terms <- c("first date","chicken wing",
