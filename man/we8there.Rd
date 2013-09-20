@@ -59,11 +59,12 @@ fwd$fitted[fwd$fitted>5] <- 5
 plot(fwd$fitted ~ factor(we8thereRatings$Overall), col="lightslategrey")
 
 ## plot fits for a few individual terms
-par(mfrow=c(3,2))
-for(j in c("first date","chicken wing",
+terms <- c("first date","chicken wing",
 			"ate here", "good food",
-			"food fabul","terribl servic"))
-{ 	plot(fits[[j]]); mtext(j,font=2,line=2)
+			"food fabul","terribl servic")
+par(mfrow=c(3,2))
+for(j in 1:6)
+{ 	plot(fits[[terms[j]]]); mtext(terms[j],font=2,line=2)
  	abline(v=log(attributes(B)$lambda[j]), col="darkorange") }
 
 }
