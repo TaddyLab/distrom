@@ -90,7 +90,8 @@ coef.dmr <- function(object, select=NULL,
   ## process, match names, and output
   B <- mcmapply(function(f,s) as.matrix(coef(f,s)), 
           object, select, mc.cores=cores)
-  B <- as(as(B,"dgCMatrix"),"dmrcoef")
+  ## set class and double check correct naming
+  B <- as(as(B[,names(object)],"dgCMatrix"),"dmrcoef")
   B@lambda <- mapply(function(f,s) f$lambda[s], object, select)
   
   return(B)
