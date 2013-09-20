@@ -52,6 +52,7 @@ dmr <- function(counts, covars, bins=NULL,
   mods <- mclapply(x,grun,mc.cores=cores)[xvar]
   class(mods) <- "dmr"
   attr(mods,"nobs") <- sum(chk$n)
+  attr(mods,"cores") <- cores
   return(mods)
 }
 
@@ -71,7 +72,8 @@ logLik.dmr <- function(object, ...){
   ll
 }
 
-coef.dmr <- function(object, select=NULL, grouped=TRUE, k=2, ...){
+coef.dmr <- function(object, select=NULL, 
+  grouped=TRUE, k=2, cores=attributes(object)['cores'], ...){
   ## model selection
   if(is.null(select)){
     aic <- AIC(object,k=k)
@@ -86,7 +88,8 @@ coef.dmr <- function(object, select=NULL, grouped=TRUE, k=2, ...){
   if(length(select)==1) select <- rep(select, ncol(aic))
 
   ## process, match names, and output
-  B <- mapply(function(f,s) coef(f,s), object, select)
+  B <- mcmapply(function(f,s) as.matrix(coef(f,s)), 
+          object, select, mc.cores=cores)
   B <- as(as(B,"dgCMatrix"),"dmrcoef")
   B@lambda <- mapply(function(f,s) f$lambda[s], object, select)
   
@@ -115,6 +118,7 @@ predict.dmrcoef <- function(object, newdata,
     eta <- tcrossprod(newdata,object[-1,])
     colnames(eta) <- rownames(object)[-1]
     rownames(eta) <- rownames(newdata)
+    return(as.data.frame(as.matrix(eta)))
   }
   else{
     eta <- t(tcrossprod(t(object[-1,]),newdata) + object[1,])
@@ -123,8 +127,8 @@ predict.dmrcoef <- function(object, newdata,
       eta <- expeta/rowSums(expeta) }
     rownames(eta) <- rownames(newdata)
     colnames(eta) <- colnames(object)
+    return(as.matrix(eta))
   }
-  as.matrix(eta)
 }
 
 setGeneric("predict")

@@ -8,7 +8,7 @@
 \description{
 Counts for 2804 bigrams in 6175 restaurant reviews from the site www.we8there.com. }
 
-\details{ The short user-submitted reviews are accompanied by a five-star rating on four specific aspects of restaurant quality - food, service, value, and atmosphere - as well as the overall experience.  The reviews originally appear in Maua and Cozman (2009), and the parsing details behind these specific counts are in Taddy (2011). }
+\details{ The short user-submitted reviews are accompanied by a five-star rating on four specific aspects of restaurant quality - food, service, value, and atmosphere - as well as the overall experience.  The reviews originally appear in Maua and Cozman (2009), and the parsing details behind these specific counts are in Taddy (MNIR; 2013). }
 
 \value{
    \item{we8thereCounts}{ A \code{dgCMatrix} of phrase counts indexed by review-rows and bigram-columns.}
@@ -34,10 +34,36 @@ Matt Taddy, \email{taddy@chicagobooth.edu}
 \examples{
 ## some multinomial inverse regression
 data(we8there)
+
+## regress counts onto 5-star overall rating
 fits <- dmr(we8thereCounts, we8thereRatings$Overall, 
-			bins=detectCores(),cores=4)
+	gamma=10, lambda.min.ratio=1e-3, # consider very tight fits
+	bins=5,cores=detectCores())
+
+## extract grouped AIC (default) coefficients
 B <- coef(fits)
-Z <- predict(B,we8thereCounts,type="reduction")
-summary(fwd <- lm(we8thereRatings$Overall ~ Z))
-plot(fwd$fitted ~ factor(we8thereRatings$Overall))
+mean(B[2,]==0) # sparsity in loadings
+## some big loadings in IR
+B[2,order(B[2,])[1:10]]
+B[2,order(-B[2,])[1:10]]
+
+## do MNIR projection onto factors
+Z <- predict(B,we8thereCounts,type="reduction") 
+## fit a fwd model to the factors
+summary(fwd <- lm(we8thereRatings$Overall ~ ., data=Z)) 
+## truncate the fwd predictions to our known range
+fwd$fitted[fwd$fitted<1] <- 1
+fwd$fitted[fwd$fitted>5] <- 5
+
+## plot the fitted rating by true rating
+plot(fwd$fitted ~ factor(we8thereRatings$Overall), col="lightslategrey")
+
+## plot fits for a few individual terms
+par(mfrow=c(3,2))
+for(j in c("first date","chicken wing",
+			"ate here", "good food",
+			"food fabul","terribl servic"))
+{ 	plot(fits[[j]]); mtext(j,font=2,line=2)
+ 	abline(v=log(attributes(B)$lambda[j]), col="darkorange") }
+
 }
