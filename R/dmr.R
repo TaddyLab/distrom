@@ -86,14 +86,10 @@ coef.dmr <- function(object, select=NULL, grouped=TRUE, k=2, ...){
   if(length(select)==1) select <- rep(select, ncol(aic))
 
   ## process, match names, and output
-  B <- mapply(function(f,s) as.matrix(coef(f,s)), object, select)
-  lambda <- mapply(function(f,s) f$lambda[s], object, select)
-
+  B <- mapply(function(f,s) coef(f,s), object, select)
   B <- as(as(B,"dgCMatrix"),"dmrcoef")
-  if(grouped){
-    B@lambda <- unique(lambda)
-    names(B@lambda) <- sprintf("seg%d",select[1])
-  } else B@lambda <- lambda
+  B@lambda <- mapply(function(f,s) f$lambda[s], object, select)
+  
   return(B)
 }
 
