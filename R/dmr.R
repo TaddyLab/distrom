@@ -87,7 +87,7 @@ coef.dmr <- function(object, select=NULL,
         function(s) ifelse(length(s)==0,1,s))
     }
   }
-  if(length(select)==1) select <- rep(select, ncol(aic))
+  if(length(select)==1) select <- rep(select, length(object))
 
   ## process, match names, and output
   B <- mcmapply(function(f,s) as.matrix(coef(f,s)), 
