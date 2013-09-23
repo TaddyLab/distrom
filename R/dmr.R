@@ -24,6 +24,7 @@ dmr <- function(counts, covars, bins=NULL,
     if(is.null(std)) std = TRUE
     if(std){
       vs <- sqrt(colSums(v^2)/nrow(v) - colMeans(v)^2)
+      vs[vs==0] <- 1
       g0 <- g0/(vs*nrow(v))
     }
     lambda.start <- max(g0) 
