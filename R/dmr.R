@@ -12,20 +12,20 @@ dmr <- function(counts, covars, bins=NULL,
   v <- chk$v
 
   ## calculate fixed shift
-  u <- rowMeans(x) + chk$n
-  mu <- log(u)
+  u <- rowMeans(x)
+  mu <- log(u + chk$n)
 
   ## set path 
   if(is.null(lambda.start))
   {  
     e0 = x-outer(u,colSums(x)/sum(u))
-    g0 = abs(t(v)%*%e0)
+    g0 = 2*abs(t(v)%*%e0)/nrow(v)
     std = list(...)$standardize
     if(is.null(std)) std = TRUE
     if(std){
       vs <- sqrt(colSums(v^2)/nrow(v) - colMeans(v)^2)
       vs[vs==0] <- 1
-      g0 <- g0/(vs*nrow(v))
+      g0 <- g0/vs
     }
     lambda.start <- max(g0) 
   }
