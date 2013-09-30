@@ -6,6 +6,7 @@ collapse <- function(x,v,bins=NULL){
 	if(inherits(v,c("Matrix","simple_triplet_matrix")))
 		v <- as.matrix(v)
 	v <- as.data.frame(v)
+
   if(inherits(x,"data.frame")){
     if(ncol(x)>1) x <- as.matrix(x)
     else x <- factor(x[,1])
@@ -23,6 +24,8 @@ collapse <- function(x,v,bins=NULL){
   x=as(x,"dgCMatrix") 
   if(is.null(colnames(x))) colnames(x) <- 1:ncol(x)
 
+  if(nrow(x) != nrow(v)) 
+    stop("counts and covars have a different number of observations")
   if(is.null(bins)) 
     return(list(x=x,v=v,n=rep.int(1,nrow(x))))
 
