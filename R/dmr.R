@@ -95,7 +95,10 @@ coef.dmr <- function(object, select=NULL,
           object, select, mc.cores=cores)
   ## set class and double check correct naming
   B <- as(as(B[,names(object)],"dgCMatrix"),"dmrcoef")
-  B@lambda <- mapply(function(f,s) f$lambda[s], object, select)
+  B@lambda <- mapply(
+    function(f,s) 
+      ifelse(is.na(f$lambda[s]),f$lambda[which.min(f$lambda)],f$lambda[s]),
+    object, select)
   
   return(B)
 }

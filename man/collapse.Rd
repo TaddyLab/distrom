@@ -11,7 +11,7 @@
 \details{
 	For each column of \code{v}, aggregates
 	the observations into \code{bins} bins defined by their average value.  Both \code{v} and \code{x} are then collapsed according to levels of the interaction across implied bin-factors, and the number
-	of observations in each bin is recorded as \code{n}.
+	of observations in each bin is recorded as \code{n}.  Look at the code of the \code{dmr} function to see \code{collapse} used in practice.
 }
 \value{A list containing collapsed and formatted \code{x}, \code{v}, and \code{n}.}
 \author{

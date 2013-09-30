@@ -7,7 +7,7 @@
 The extended \code{dgCMatrix} class for output from \code{coef.dmr}.
 }
 \details{
-This is the class for a covariate matrix for \code{dmr} regression;  it inherits the \code{dgCMatrix} class as defined in the \code{Matrix} library.  
+This is the class for a covariate matrix from \code{dmr} regression;  it inherits the \code{dgCMatrix} class as defined in the \code{Matrix} library.  
  In particular, this is the \code{ncol(covars)} by \code{ncol(counts)} matrix of logistic regression coefficients chosen in \code{coef.dmr} from the regularization paths for each category. It includes the extra slot \code{lambda}: the selected \code{gamlr} penalty for each coefficient.}
 \section{Objects from the Class}{
 Objects can be created only by a call to the \code{coef.dmr} function.
@@ -32,7 +32,7 @@ Objects can be created only by a call to the \code{coef.dmr} function.
       Prediction for a given \code{dmrcoef} matrix.  Takes the same arguments as \code{predict.dmr}, but will be faster (since \code{coef.dmr} is called inside \code{predict.dmr}).  }
 	 }
 }
-\seealso{dmr,coef.dmr,predict.dmr}
+\seealso{dmr, coef.dmr, predict.dmr}
 \author{Matt Taddy \email{taddy@chicagobooth.edu} }
 \examples{showClass("dmrcoef")}
 \keyword{classes}
