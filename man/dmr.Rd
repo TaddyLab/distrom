@@ -33,8 +33,8 @@ with equal probabilities are also multinomial, the model is then fit to these co
 \item{select}{For \code{coef.dmr}, this is the index of the 
 regularization paths from which you want estimates.  Can either be a single value for all categories or a vector of values, one for each category.  If left \code{NULL} the coefficients are selected via an information criteria according to arguments \code{k} and \code{grouped}.}
 \item{k}{The information criteria penalty on degrees of freedom.  \code{k=2} is the AIC, \code{k=log(n)} is the BIC. }
-\item{grouped}{For model selection in \code{coef.dmr} with \code{select=NULL}. 
-For \code{grouped=FALSE}, we return AIC-optimal penalization for each individual response dimension based upon the Poisson deviances (you can set the AIC \code{k} when calling \code{coef.dmr}).  Under \code{grouped=TRUE} we use a single shared \code{gamlr} penalty with minimum sum AIC across response classes. This is based on multinomial deviance, and it is necessary that you have run \code{dmr} with \code{store=FALSE} to calculate the correction from Poisson deviances.   }
+\item{grouped}{For model selection in \code{coef.dmr} via AIC when \code{select=NULL} (you can set the AIC \code{k} when calling \code{coef.dmr}). 
+Given \code{grouped=FALSE}, we return AIC-optimal penalization for each individual response dimension based upon the Poisson deviances.  Under \code{grouped=TRUE} we use a single shared \code{gamlr} penalty with minimum sum AIC across response classes. This is based on multinomial deviance, and it is necessary that you have run \code{dmr} with \code{store=FALSE} to calculate the correction from Poisson deviances.   }
 \item{type}{
 For \code{predict.dmr}, this is the scale upon which you want prediction. Under "link", just the linear map \code{newdata} times \code{object}, under "response" the fitted multinomial probabilities, and under "reduction" the MNIR sufficient reduction \eqn{F\phi/m}.}
 \item{newdata}{A Matrix with the same number of columns as \code{covars}, unless
