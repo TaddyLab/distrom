@@ -7,10 +7,11 @@
 \description{Gamma-lasso path estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.}
 \usage{
 dmr(counts, covars, bins=NULL, 
-    lambda.start=NULL, cores=1,  ...)
+    lambda.start=NULL, cores=1,  
+    store=FALSE, ...)
 \method{logLik}{dmr}(object, ...)
 \method{coef}{dmr}(object, select=NULL, 
-		grouped=TRUE, k=2, cores=attributes(object)['cores'], ...)
+		grouped=FALSE, k=2, cores=attributes(object)['cores'], ...)
 \method{predict}{dmr}(object,newdata,
 	type=c("link","response","reduction"), ...)
 }
@@ -24,6 +25,7 @@ dmr(counts, covars, bins=NULL,
 \item{bins}{Number of bins into which we will attempt to collapse each column of \code{covars}.  Since sums of multinomials 
 with equal probabilities are also multinomial, the model is then fit to these collapsed `observations'. \code{bins=NULL}
  does no collapsing. }
+\item{store}{Whether or not to store the cleaned/binned covariates and counts.  This is required if you want to use \code{grouped=TRUE} in model selection. }
 \item{lambda.start}{Where to start each regularization path.  If \code{NULL} it uses the maximum absolute gradient across all categories (i.e. the smallest \eqn{\lambda} such that all coefficients are set to zero). }
 \item{cores}{The number of shared memory processor 
 	cores to pass to \code{parallel} library functions.  
@@ -31,7 +33,8 @@ with equal probabilities are also multinomial, the model is then fit to these co
 \item{select}{For \code{coef.dmr}, this is the index of the 
 regularization paths from which you want estimates.  Can either be a single value for all categories or a vector of values, one for each category.  If left \code{NULL} the coefficients are selected via an information criteria according to arguments \code{k} and \code{grouped}.}
 \item{k}{The information criteria penalty on degrees of freedom.  \code{k=2} is the AIC, \code{k=log(n)} is the BIC. }
-\item{grouped}{For model selection in \code{coef.dmr} with \code{select=NULL}. Under \code{grouped=TRUE} we use a single shared \code{gamlr} penalty with minimum sum IC (information criterion) across response classes. Otherwise coefficients are returned at IC-optimal penalization for each individual response dimension. }
+\item{grouped}{For model selection in \code{coef.dmr} with \code{select=NULL}. 
+For \code{grouped=FALSE}, we return AIC-optimal penalization for each individual response dimension based upon the Poisson deviances (you can set the AIC \code{k} when calling \code{coef.dmr}).  Under \code{grouped=TRUE} we use a single shared \code{gamlr} penalty with minimum sum AIC across response classes. This is based on multinomial deviance, and it is necessary that you have run \code{dmr} with \code{store=FALSE} to calculate the correction from Poisson deviances.   }
 \item{type}{
 For \code{predict.dmr}, this is the scale upon which you want prediction. Under "link", just the linear map \code{newdata} times \code{object}, under "response" the fitted multinomial probabilities, and under "reduction" the MNIR sufficient reduction \eqn{F\phi/m}.}
 \item{newdata}{A Matrix with the same number of columns as \code{covars}, unless
@@ -53,7 +56,7 @@ For \code{predict.dmr}, this is the scale upon which you want prediction. Under 
 	is a matrix of predicted class probabilities (\code{type="response"})
 	or pre-logit linear equations (\code{type="link"}).
 }
-\value{  The \code{dmr} s3 object: an \code{ncol(counts)}-length list of fitted \code{gamlr} objects, with the added attributes \code{nobs} and \code{cores}. }
+\value{  \code{dmr} returns the \code{dmr} s3 object: an \code{ncol(counts)}-length list of fitted \code{gamlr} objects, with the added attributes \code{nlambda}, \code{nobs}, \code{cores} and, if \code{store=TRUE}, \code{data}. }
 \references{
 Taddy (2013) Distributed Multinomial Regression
 
@@ -66,8 +69,9 @@ Taddy (2013) Multinomial Inverse Regression for Text Analysis, with discussion a
 
 library(MASS)
 data(fgl)
-fits <- dmr(fgl$type, fgl[,1:9])
-B <- coef(fits)
+fits <- dmr(fgl$type, fgl[,1:9], store=TRUE)
+## do grouped BIC model selection
+B <- coef(fits, grouped=TRUE, k=log(nrow(fgl)))
 log(B@lambda)
 P <- predict(B, fgl[,1:9], type="response")
 

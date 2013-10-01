@@ -1,11 +1,12 @@
-
+## define class
 setClass("dmrcoef",
   representation(lambda="numeric"), 
   contains="dgCMatrix")
 
 ##### Distributed Logistic Multinomial Regression  ######
 dmr <- function(counts, covars, bins=NULL, 
-                lambda.start=NULL, cores=1, ...)
+                lambda.start=NULL, cores=1, 
+                store=FALSE, ...)
 {
   chk <- collapse(counts, covars, bins)
   x <- chk$x
@@ -56,6 +57,9 @@ dmr <- function(counts, covars, bins=NULL,
   class(mods) <- "dmr"
   attr(mods,"nobs") <- sum(chk$n)
   attr(mods,"cores") <- cores
+  attr(mods,"nlambda") <- nlambda
+  if(store)
+    attr(mods,"data") <- chk
   return(mods)
 }
 
@@ -63,7 +67,7 @@ logLik.dmr <- function(object, ...){
   dev <- sapply(object, function(fit) fit$dev)
   df <- sapply(object, function(fit) fit$df)
   if(!inherits(dev,"matrix")){
-      nl <- max(sapply(dev,length))
+      nl <- attributes(object)$nlambda
       dev <- sapply(dev,function(a) c(a,rep(NA,nl-length(a))))
       df <- sapply(df,function(a) c(a,rep(NA,nl-length(a))))
     }
@@ -75,14 +79,36 @@ logLik.dmr <- function(object, ...){
   ll
 }
 
+## internal lhd adjustment
+mnadjust <- function(object){
+  chk <- attributes(object)$data
+  if(is.null(chk)) 
+    stop("You need to run dmr with store=TRUE to get grouped deviance.")
+
+  ## undo saturated poisson adjustment
+  satd <- chk$x@x*log(chk$x@x) - chk$x@x
+  satd[is.nan(satd)] <- 0
+  satd <- sum(satd)
+
+  ## calculate difference in normalizing constants
+  m <- rowSums(chk$x)
+  nlambda <- attributes(object)$nlambda
+  dshift <- sapply(1:nlambda, 
+    function(s){
+        ee <- exp(predict(object,chk$v,select=s))
+        sum(ee) - sum(m*log(rowSums(ee))) })
+  return(-2*(dshift + satd))
+}
+
 coef.dmr <- function(object, select=NULL, 
-  grouped=TRUE, k=2, cores=attributes(object)['cores'], ...){
+  grouped=FALSE, k=2, cores=attributes(object)['cores'], ...){
   ## model selection
   if(is.null(select)){
     aic <- AIC(object,k=k)
-    if(grouped) 
+    if(grouped){
+      aic <- aic + mnadjust(object)
       select <- which.min(rowSums(aic, na.rm=TRUE))
-    else{
+    } else{
       select <- apply(aic, 2, which.min)
       select <- sapply(select, 
         function(s) ifelse(length(s)==0,1,s))
