@@ -154,7 +154,7 @@ predict.dmrcoef <- function(object, newdata,
     return(as.data.frame(as.matrix(eta)))
   }
   else{
-    eta <- t(tcrossprod(t(object[-1,]),newdata) + object[1,])
+    eta <- t(tcrossprod(t(object[-1,,drop=FALSE]),newdata) + object[1,])
     if(type=="response"){
       expeta <- exp(eta)
       eta <- expeta/rowSums(expeta) }
