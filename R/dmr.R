@@ -20,7 +20,7 @@ dmr <- function(counts, covars, bins=NULL,
   if(is.null(lambda.start))
   {  
     e0 = x-outer(u,colSums(x)/sum(u))
-    g0 = 2*abs(t(v)%*%e0)/nrow(v)
+    g0 = abs(t(v)%*%e0)/nrow(v)
     std = list(...)$standardize
     if(is.null(std)) std = TRUE
     if(std){
