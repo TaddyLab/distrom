@@ -121,6 +121,7 @@ coef.dmr <- function(object, select=NULL,
           object, select, mc.cores=cores)
   ## set class and double check correct naming
   B <- as(as(B[,names(object)],"dgCMatrix"),"dmrcoef")
+  rownames(B) <- c("intercept",rownames(object[[1]]$b))
   B@lambda <- mapply(
     function(f,s) 
       ifelse(is.na(f$lambda[s]),f$lambda[which.min(f$lambda)],f$lambda[s]),
