@@ -30,8 +30,13 @@ collapse <- function(x,v,bins=NULL){
     return(list(x=x,v=v,n=rep.int(1,nrow(x))))
 
   qs <- (0:bins)/bins
-  B <- apply(v,2,function(v)
-    cut(v, breaks=unique(quantile(v, qs)), include.lowest=TRUE))
+  cutit <- function(vj){
+    if(length(unique(vj))<=bins) return(factor(vj))
+    return(cut(vj, 
+            breaks=unique(quantile(vj, qs)), 
+            include.lowest=TRUE))
+  }
+  B <- apply(v,2,cutit)
   I <- interaction(as.data.frame(B), drop=TRUE)
   vbin <- apply(v,2,function(vj) tapply(as.numeric(vj), I, mean))
   nbin <- table(I)

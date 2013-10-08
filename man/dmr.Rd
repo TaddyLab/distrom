@@ -56,7 +56,7 @@ For \code{predict.dmr}, this is the scale upon which you want prediction. Under 
 	is a matrix of predicted class probabilities (\code{type="response"})
 	or pre-logit linear equations (\code{type="link"}).
 }
-\value{  \code{dmr} returns the \code{dmr} s3 object: an \code{ncol(counts)}-length list of fitted \code{gamlr} objects, with the added attributes \code{nlambda}, \code{nobs}, \code{cores} and, if \code{store=TRUE}, \code{data}. }
+\value{  \code{dmr} returns the \code{dmr} s3 object: an \code{ncol(counts)}-length list of fitted \code{gamlr} objects, with the added attributes \code{nlambda}, \code{lambda.start}, \code{nobs}, \code{cores} and, if \code{store=TRUE}, \code{data}. }
 \references{
 Taddy (2013) Distributed Multinomial Regression
 

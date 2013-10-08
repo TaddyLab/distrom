@@ -9,17 +9,21 @@ dmr <- function(counts, covars, bins=NULL,
                 store=FALSE, ...)
 {
   chk <- collapse(counts, covars, bins)
-  x <- chk$x
   v <- chk$v
 
+  ## grab x as list
+  xvar <- colnames(chk$x)
+  x <- lapply(xvar,function(j) chk$x[,j,drop=FALSE])
+  names(x) <- xvar
+
   ## calculate fixed shift
-  u <- rowMeans(x)
+  u <- rowMeans(chk$x)
   mu <- log(u + chk$n)
 
   ## set path 
   if(is.null(lambda.start))
   {  
-    e0 = x-outer(u,colSums(x)/sum(u))
+    e0 = chk$x-outer(u,colSums(chk$x)/sum(u))
     g0 = abs(t(v)%*%e0)/nrow(v)
     std = list(...)$standardize
     if(is.null(std)) std = TRUE
@@ -48,9 +52,6 @@ dmr <- function(counts, covars, bins=NULL,
   }
 
   ## parallel computing
-  xvar <- colnames(x)
-  x <- lapply(xvar,function(j) x[,j,drop=FALSE])
-  names(x) <- xvar
   mods <- mclapply(x,grun,mc.cores=cores)[xvar]
 
   ## classy exit
@@ -58,6 +59,7 @@ dmr <- function(counts, covars, bins=NULL,
   attr(mods,"nobs") <- sum(chk$n)
   attr(mods,"cores") <- cores
   attr(mods,"nlambda") <- nlambda
+  attr(mods,"lambda.start") <- lambda.start
   if(store)
     attr(mods,"data") <- chk
   return(mods)
