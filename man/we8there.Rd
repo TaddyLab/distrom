@@ -36,12 +36,19 @@ Matt Taddy, \email{taddy@chicagobooth.edu}
 data(we8there)
 
 ## regress counts onto 5-star overall rating
-fits <- dmr(we8thereCounts, we8thereRatings$Overall, 
-	gamma=10, lambda.min.ratio=1e-3, # consider very tight fits
-	bins=5,cores=detectCores())
+fits <- dmr(we8thereCounts, we8thereRatings$Overall, bins=5,
+			gamma=10, lambda.min.ratio=1e-4)
 
-## extract ungrouped BIC coefficients
-B <- coef(fits, k=log(nrow(we8thereCounts)))
+## plot fits for a few individual terms
+terms <- c("first date","chicken wing",
+			"ate here", "good food",
+			"food fabul","terribl servic")
+par(mfrow=c(3,2))
+for(j in terms)
+{ 	plot(fits[[j]]); mtext(j,font=2,line=2) }
+ 
+## extract coefficients
+B <- coef(fits)
 mean(B[2,]==0) # sparsity in loadings
 ## some big loadings in IR
 B[2,order(B[2,])[1:10]]
@@ -56,17 +63,8 @@ fwd$fitted[fwd$fitted<1] <- 1
 fwd$fitted[fwd$fitted>5] <- 5
 
 ## plot the fitted rating by true rating
+par(mfrow=c(1,2))
 plot(fwd$fitted ~ factor(we8thereRatings$Overall), 
 	varwidth=TRUE, col="lightslategrey")
-
-## plot fits for a few individual terms
-terms <- c("first date","chicken wing",
-			"ate here", "good food",
-			"food fabul","terribl servic")
-par(mfrow=c(3,2))
-for(j in terms)
-{ 	plot(fits[[j]], select=FALSE); mtext(j,font=2,line=2)
- 	abline(v=log(attributes(B)$lambda[match(j,names(fits))]), 
- 	col="darkorange") }
 
 }

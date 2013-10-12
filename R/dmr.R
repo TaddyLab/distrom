@@ -3,9 +3,12 @@ setClass("dmrcoef",
   representation(lambda="numeric"), 
   contains="dgCMatrix")
 
+
 ##### Distributed Logistic Multinomial Regression  ######
 dmr <- function(counts, covars, bins=NULL, 
-                lambda.start=NULL, cores=1, 
+                lambda.start=NULL, 
+                cl=makeCluster(detectCores(),
+                    type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK")), 
                 store=FALSE, ...)
 {
   chk <- collapse(counts, covars, bins)
@@ -42,27 +45,59 @@ dmr <- function(counts, covars, bins=NULL,
                     argl$nlambda)
 
   ## inner loop function
-  grun <- function(xj){
+  grun <- function(xj, ...){
+    require(Matrix)
+    require(gamlr)
     fit <- gamlr(v, xj, family="poisson", 
                 fix=mu, 
                 lambda.start=lambda.start, ...)
     if(length(fit$lambda)<nlambda) 
-        write(colnames(xj),stderr())
+        print(colnames(xj))
     return(fit)
   }
 
   ## parallel computing
-  mods <- mclapply(x,grun,mc.cores=cores)[xvar]
+  mods <- parLapply(cl,x,grun)[xvar]
+  stopCluster(cl)
 
   ## classy exit
   class(mods) <- "dmr"
   attr(mods,"nobs") <- sum(chk$n)
-  attr(mods,"cores") <- cores
   attr(mods,"nlambda") <- nlambda
   attr(mods,"lambda.start") <- lambda.start
   if(store)
     attr(mods,"data") <- chk
   return(mods)
+}
+
+
+coef.dmr <- function(object, select=NULL, grouped=FALSE, k=2, ...){
+  ## model selection
+  if(is.null(select)){
+    aic <- AIC(object,k=k)
+    if(grouped){
+      aic <- aic + mnadjust(object)
+      select <- which.min(rowSums(aic, na.rm=TRUE))
+    } else{
+      select <- apply(aic, 2, which.min)
+      select <- sapply(select, 
+        function(s) ifelse(length(s)==0,1,s))
+    }
+  }
+  if(length(select)==1) select <- rep(select, length(object))
+
+  ## grab coef
+  B <- mapply(function(f,s) as.matrix(coef(f,s)), object, select)
+
+  ## set class and double check correct naming
+  B <- as(as(B[,names(object)],"dgCMatrix"),"dmrcoef")
+  rownames(B) <- c("intercept",rownames(object[[1]]$b))
+  B@lambda <- mapply(
+    function(f,s) 
+      ifelse(is.na(f$lambda[s]),f$lambda[which.min(f$lambda)],f$lambda[s]),
+    object, select)
+  
+  return(B)
 }
 
 logLik.dmr <- function(object, ...){
@@ -100,36 +135,6 @@ mnadjust <- function(object){
         ee <- exp(predict(object,chk$v,select=s))
         sum(ee) - sum(m*log(rowSums(ee))) })
   return(-2*(dshift + satd))
-}
-
-coef.dmr <- function(object, select=NULL, 
-  grouped=FALSE, k=2, cores=attributes(object)['cores'], ...){
-  ## model selection
-  if(is.null(select)){
-    aic <- AIC(object,k=k)
-    if(grouped){
-      aic <- aic + mnadjust(object)
-      select <- which.min(rowSums(aic, na.rm=TRUE))
-    } else{
-      select <- apply(aic, 2, which.min)
-      select <- sapply(select, 
-        function(s) ifelse(length(s)==0,1,s))
-    }
-  }
-  if(length(select)==1) select <- rep(select, length(object))
-
-  ## process, match names, and output
-  B <- mcmapply(function(f,s) as.matrix(coef(f,s)), 
-          object, select, mc.cores=cores)
-  ## set class and double check correct naming
-  B <- as(as(B[,names(object)],"dgCMatrix"),"dmrcoef")
-  rownames(B) <- c("intercept",rownames(object[[1]]$b))
-  B@lambda <- mapply(
-    function(f,s) 
-      ifelse(is.na(f$lambda[s]),f$lambda[which.min(f$lambda)],f$lambda[s]),
-    object, select)
-  
-  return(B)
 }
 
 ## method predict functions
