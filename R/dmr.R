@@ -17,9 +17,7 @@ porun <- function(xj, v, mu, nlambda, ...){
 
 ## main function
 dmr <- function(counts, covars, bins=NULL, 
-                cl=makeCluster(detectCores(),
-                    type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK")), 
-                ...)
+                cl=NULL, ...)
 {
   chk <- collapse(counts, covars, bins)
 
@@ -30,9 +28,17 @@ dmr <- function(counts, covars, bins=NULL,
                     argl$nlambda)
 
   ## parallel computing
+  stopcl = FALSE
+  if(is.null(cl)){
+    cl <- makeCluster(detectCores(),
+                    type=ifelse(
+                      .Platform$OS.type=="unix",
+                      "FORK","PSOCK"))
+    stopcl = TRUE
+  }
   mods <- parLapply(cl,chk$x,porun,
             v=chk$v,mu=chk$mu,nlambda=nlambda,...)
-  stopCluster(cl)
+  if(stopcl) stopCluster(cl)
 
   ## align names (probably unnecessary)
   mods <- mods[names(chk$x)]
@@ -55,9 +61,11 @@ coef.dmr <- function(object, select=NULL, k=2, ...){
   if(length(select)==1) select <- rep(select, length(object))
 
   ## grab coef
-  B <- mapply(function(f,s) as.matrix(coef(f,s)), object, select)
-
-  ## set class and double check correct naming
+  B <- mapply( 
+        function(f,s) c(f$alpha[s],f$beta[,s]), 
+        object, select)
+ 
+   ## set class and double check correct naming
   B <- as(as(B[,names(object)],"dgCMatrix"),"dmrcoef")
   rownames(B) <- c("intercept",rownames(object[[1]]$b))
   B@lambda <- mapply(

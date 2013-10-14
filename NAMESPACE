@@ -2,10 +2,15 @@ import(Matrix)
 import(gamlr)
 import(methods)
 
-export(collapse,dmr)
+export(collapse,dmr,cv.dmr)
+
 S3method(coef,dmr)
 S3method(predict,dmr)
 S3method(logLik,dmr)
+
+S3method(coef,cv.dmr)
+S3method(logLik,cv.dmr)
+S3method(plot,cv.dmr)
 
 exportClasses(dmrcoef)
 exportMethods(predict)

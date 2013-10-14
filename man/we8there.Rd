@@ -36,8 +36,9 @@ Matt Taddy, \email{taddy@chicagobooth.edu}
 data(we8there)
 
 ## regress counts onto 5-star overall rating
-fits <- dmr(we8thereCounts, we8thereRatings$Overall, bins=5,
-			gamma=10, lambda.min.ratio=1e-4)
+fits <- dmr(we8thereCounts, 
+	we8thereRatings$Overall, 
+	bins=5, gamma=1)
 
 ## plot fits for a few individual terms
 terms <- c("first date","chicken wing",
@@ -63,7 +64,7 @@ fwd$fitted[fwd$fitted<1] <- 1
 fwd$fitted[fwd$fitted>5] <- 5
 
 ## plot the fitted rating by true rating
-par(mfrow=c(1,2))
+par(mfrow=c(1,1))
 plot(fwd$fitted ~ factor(we8thereRatings$Overall), 
 	varwidth=TRUE, col="lightslategrey")
 
