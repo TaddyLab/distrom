@@ -26,9 +26,16 @@ collapse <- function(x,v,bins=NULL){
 
   if(nrow(x) != nrow(v)) 
     stop("counts and covars have a different number of observations")
-  if(is.null(bins)) 
-    return(list(x=x,v=v,n=rep.int(1,nrow(x))))
 
+  ## uncollapsed exit
+  if(is.null(bins)){
+    mu <- log(rowMeans(x) + 1)
+    x <- sapply(colnames(x),
+      function(j) x[,j,drop=FALSE],simplify=FALSE)
+    return(list(x=x,v=v,nbin=rep(1,nrow(x)),mu=mu))
+  }
+
+  ## binning
   qs <- (0:bins)/bins
   cutit <- function(vj){
     if(length(unique(vj))<=bins) return(factor(vj))
@@ -38,16 +45,19 @@ collapse <- function(x,v,bins=NULL){
   }
   B <- apply(v,2,cutit)
   I <- interaction(as.data.frame(B), drop=TRUE)
-  vbin <- apply(v,2,function(vj) tapply(as.numeric(vj), I, mean))
+  v <- apply(v,2,function(vj) tapply(as.numeric(vj), I, mean))
   nbin <- table(I)
 
   xstm <- summary(x)
-  xbin <- sparseMatrix(i=as.numeric(I)[xstm$i],
+  x <- sparseMatrix(i=as.numeric(I)[xstm$i],
     j = xstm$j, x=xstm$x,
     dims=c(nlevels(I),ncol(x)),
     dimnames=list(levels(I),colnames(x)))
+  mu <- log(rowMeans(x) + nbin)
+  x <- sapply(colnames(x),
+        function(j) x[,j,drop=FALSE],simplify=FALSE)
 
-  return(list(x=xbin,v=vbin,n=nbin))
+  return(list(x=x,v=v,nbin=nbin,mu=mu)
 
 }
 

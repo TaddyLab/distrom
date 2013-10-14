@@ -1,42 +1,27 @@
+##### Distributed Logistic Multinomial Regression  ######
+
 ## define class
 setClass("dmrcoef",
   representation(lambda="numeric"), 
   contains="dgCMatrix")
 
+## undocumented inner loop function
+porun <- function(xj, v, mu, nlambda, ...){
+  require(Matrix)
+  require(gamlr)
+  fit <- gamlr(v, xj, family="poisson", fix=mu, ...)
+  if(length(fit$lambda)<nlambda) 
+      print(colnames(xj))
+  return(fit)
+}
 
-##### Distributed Logistic Multinomial Regression  ######
+## main function
 dmr <- function(counts, covars, bins=NULL, 
-                lambda.start=NULL, 
                 cl=makeCluster(detectCores(),
                     type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK")), 
-                store=FALSE, ...)
+                ...)
 {
   chk <- collapse(counts, covars, bins)
-  v <- chk$v
-
-  ## grab x as list
-  xvar <- colnames(chk$x)
-  x <- lapply(xvar,function(j) chk$x[,j,drop=FALSE])
-  names(x) <- xvar
-
-  ## calculate fixed shift
-  u <- rowMeans(chk$x)
-  mu <- log(u + chk$n)
-
-  ## set path 
-  if(is.null(lambda.start))
-  {  
-    e0 = chk$x-outer(u,colSums(chk$x)/sum(u))
-    g0 = abs(t(v)%*%e0)/nrow(v)
-    std = list(...)$standardize
-    if(is.null(std)) std = TRUE
-    if(std){
-      vs <- sqrt(colSums(v^2)/nrow(v) - colMeans(v)^2)
-      vs[vs==0] <- 1
-      g0 <- g0/vs
-    }
-    lambda.start <- max(g0) 
-  }
 
   ## grab defaults
   argl <- list(...)
@@ -44,45 +29,28 @@ dmr <- function(counts, covars, bins=NULL,
                     formals(gamlr)$nlambda,
                     argl$nlambda)
 
-  ## inner loop function
-  grun <- function(xj, ...){
-    require(Matrix)
-    require(gamlr)
-    fit <- gamlr(v, xj, family="poisson", 
-                fix=mu, 
-                lambda.start=lambda.start, ...)
-    if(length(fit$lambda)<nlambda) 
-        print(colnames(xj))
-    return(fit)
-  }
-
   ## parallel computing
-  mods <- parLapply(cl,x,grun)[xvar]
+  mods <- parLapply(cl,chk$x,porun,
+            v=chk$v,mu=chk$mu,nlambda=nlambda,...)
   stopCluster(cl)
+
+  ## align names (probably unnecessary)
+  mods <- mods[names(chk$x)]
 
   ## classy exit
   class(mods) <- "dmr"
-  attr(mods,"nobs") <- sum(chk$n)
+  attr(mods,"nobs") <- sum(chk$nbin)
   attr(mods,"nlambda") <- nlambda
-  attr(mods,"lambda.start") <- lambda.start
-  if(store)
-    attr(mods,"data") <- chk
   return(mods)
 }
 
-
-coef.dmr <- function(object, select=NULL, grouped=FALSE, k=2, ...){
+coef.dmr <- function(object, select=NULL, k=2, ...){
   ## model selection
   if(is.null(select)){
     aic <- AIC(object,k=k)
-    if(grouped){
-      aic <- aic + mnadjust(object)
-      select <- which.min(rowSums(aic, na.rm=TRUE))
-    } else{
-      select <- apply(aic, 2, which.min)
-      select <- sapply(select, 
-        function(s) ifelse(length(s)==0,1,s))
-    }
+    select <- apply(aic, 2, which.min)
+    select <- sapply(select, 
+      function(s) ifelse(length(s)==0,1,s))
   }
   if(length(select)==1) select <- rep(select, length(object))
 
@@ -114,27 +82,6 @@ logLik.dmr <- function(object, ...){
   attr(ll,"df") = df
   class(ll) <- "logLik"
   ll
-}
-
-## internal lhd adjustment
-mnadjust <- function(object){
-  chk <- attributes(object)$data
-  if(is.null(chk)) 
-    stop("You need to run dmr with store=TRUE to get grouped deviance.")
-
-  ## undo saturated poisson adjustment
-  satd <- chk$x@x*log(chk$x@x) - chk$x@x
-  satd[is.nan(satd)] <- 0
-  satd <- sum(satd)
-
-  ## calculate difference in normalizing constants
-  m <- rowSums(chk$x)
-  nlambda <- attributes(object)$nlambda
-  dshift <- sapply(1:nlambda, 
-    function(s){
-        ee <- exp(predict(object,chk$v,select=s))
-        sum(ee) - sum(m*log(rowSums(ee))) })
-  return(-2*(dshift + satd))
 }
 
 ## method predict functions
