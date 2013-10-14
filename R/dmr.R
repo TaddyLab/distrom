@@ -7,19 +7,17 @@ setClass("dmrcoef",
 
 ## undocumented inner loop function
 porun <- function(xj, v, mu, nlambda, ...){
-  require(Matrix)
-  require(gamlr)
   fit <- gamlr(v, xj, family="poisson", fix=mu, ...)
-  if(length(fit$lambda)<nlambda) 
-      print(colnames(xj))
+  ## below only works if you've specified an outfile in makeCluster
+  if(length(fit$lambda)<nlambda) print(colnames(xj))
   return(fit)
 }
 
 ## main function
-dmr <- function(counts, covars, bins=NULL, 
+dmr <- function(covars, counts, bins=NULL, 
                 cl=NULL, ...)
 {
-  chk <- collapse(counts, covars, bins)
+  chk <- collapse(covars, counts, bins)
 
   ## grab defaults
   argl <- list(...)

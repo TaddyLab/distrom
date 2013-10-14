@@ -6,7 +6,7 @@
 \title{Distributed Multinomial Regression}
 \description{Gamma-lasso path estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.}
 \usage{
-dmr(counts, covars, bins=NULL, 
+dmr(covars, counts, bins=NULL, 
     cl=NULL,  ...)
 \method{logLik}{dmr}(object, ...)
 \method{coef}{dmr}(object, select=NULL, k=2, ...)
@@ -14,25 +14,25 @@ dmr(counts, covars, bins=NULL,
 	type=c("link","response","reduction"), ...)
 }
 \arguments{
-\item{counts}{A dense \code{matrix} 
-      or sparse \code{Matrix} of
-      response counts. }
 \item{covars}{A dense \code{matrix} 
       or sparse \code{Matrix} of covariates.
       This should not include the intercept.}
+\item{counts}{A dense \code{matrix} 
+      or sparse \code{Matrix} of
+      response counts. }
 \item{bins}{Number of bins into which we will attempt to collapse each column of \code{covars}.  Since sums of multinomials 
 with equal probabilities are also multinomial, the model is then fit to these collapsed `observations'. \code{bins=NULL}
  does no collapsing. }
 \item{cl}{A \code{parallel} library socket cluster.  If \code{is.null(cl)},
- a cluster is initialized with \code{makeCluster(detectCores(), 
-    	type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))} and
+ a cluster is initialized with 
+ \code{makeCluster(detectCores(),type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))} and
     	 stopped via \code{stopCluster(cl)} upon exit.  See
 	\code{help(parallel)} for details. }
 \item{select}{For \code{coef.dmr}, this is the index of the 
-regularization paths from which you want estimates.  Can either be a single value for all categories or a vector of values, one for each category.  If left \code{NULL} the coefficients are selected via an information criteria according to arguments \code{k} and \code{grouped}.}
+regularization paths from which you want estimates.  Can either be a single value for all categories or a vector of values, one for each category.  If left \code{NULL} the coefficients are selected via an information criteria according to the argument \code{k}.}
 \item{k}{For model selection when \code{select=NULL}, the information criteria penalty on degrees of freedom.  \code{k=2} is the AIC, \code{k=log(n)} is the BIC. }
 \item{type}{
-For \code{predict.dmr}, this is the scale upon which you want prediction. Under "link", just the linear map \code{newdata} times \code{object}, under "response" the fitted multinomial probabilities, and under "reduction" the MNIR sufficient reduction \eqn{F\phi/m}.}
+For \code{predict.dmr}, this is the scale upon which you want prediction. Under "link", just the linear map \code{newdata} times \code{object}, under "response" the fitted multinomial probabilities, and under "reduction" the MNIR sufficient reduction \eqn{X\phi/m}.}
 \item{newdata}{A Matrix with the same number of columns as \code{covars}, unless
 \code{type="reduction"} in which case \code{newdata} is multinomial category count data with the same number of columns as \code{counts}.}
 \item{...}{Additional arguments to \code{gamlr} from \code{dmr} or to \code{coef.dmr} from \code{predict.dmr}.}
@@ -66,7 +66,7 @@ Taddy (2013) Multinomial Inverse Regression for Text Analysis, with discussion a
 library(MASS)
 data(fgl)
 
-fits <- dmr(fgl$type, fgl[,1:9])
+fits <- dmr(fgl[,1:9], fgl$type)
 
 ## Individual Poisson model fits and IC selection
 par(mfrow=c(3,2))

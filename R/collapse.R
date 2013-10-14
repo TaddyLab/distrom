@@ -1,7 +1,7 @@
   
 #####  argument checking and binning #####
 
-collapse <- function(x,v,bins=NULL,listx=TRUE){
+collapse <- function(v,x,bins=NULL,listx=TRUE){
 
 	if(inherits(v,c("Matrix","simple_triplet_matrix")))
 		v <- as.matrix(v)
@@ -33,7 +33,7 @@ collapse <- function(x,v,bins=NULL,listx=TRUE){
     nbin <- rep(1,nrow(x))
     if(listx) x <- sapply(colnames(x),
                 function(j) x[,j,drop=FALSE],simplify=FALSE)
-    return(list(x=x,v=v,nbin=nbin,mu=mu))
+    return(list(v=v,x=x,nbin=nbin,mu=mu))
   }
 
   ## binning
@@ -58,7 +58,7 @@ collapse <- function(x,v,bins=NULL,listx=TRUE){
   if(listx) x <- sapply(colnames(x),
               function(j) x[,j,drop=FALSE],simplify=FALSE)
 
-  return(list(x=x,v=v,nbin=nbin,mu=mu))
+  return(list(v=v,x=x,nbin=nbin,mu=mu))
 
 }
 

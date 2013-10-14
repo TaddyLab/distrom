@@ -8,13 +8,13 @@ mndev <- function(s, x, m, v, f){
 }
 
 ## outer R loop that calls dmr
-cv.dmr <- function(counts, covars, 
+cv.dmr <- function(covars, counts, 
                   lambda.start=NULL,
                   nfold=5, foldid=NULL, 
                   verb=TRUE, cl=NULL, ...){
   
   ## basic input checking
-  chk <- collapse(counts,covars,listx=FALSE)
+  chk <- collapse(covars,counts,listx=FALSE)
   x <- chk$x
   v <- chk$v
   m <- rowSums(x)
@@ -47,7 +47,7 @@ cv.dmr <- function(counts, covars,
   }
 
   ## full fit and properties
-  full <- dmr(x, v, lambda.start=lambda.start, cl=cl, ...)
+  full <- dmr(v, x, lambda.start=lambda.start, cl=cl, ...)
 
   ## get lambda
   lambda <- sort(
@@ -79,8 +79,8 @@ cv.dmr <- function(counts, covars,
   if(verb) cat("fold ")
   for(k in levels(foldid)){
     train <- which(foldid!=k)
-    fit <- dmr(x[train,],v[train,], ..., 
-              lambda.start=lambda.start)
+    fit <- dmr(v[train,], x[train,],
+      lambda.start=lambda.start, cl=cl, ...)
     oos[k,] <- parSapply(cl,
                 1:nlambda,mndev,
                 x[-train,],m[-train],v[-train,],fit)
