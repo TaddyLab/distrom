@@ -56,11 +56,12 @@ coef.dmr <- function(object, select=NULL, k=2, ...){
     select <- sapply(select, 
       function(s) ifelse(length(s)==0,1,s))
   }
-  if(length(select)==1) select <- rep(select, length(object))
-
+  
   ## grab coef
   B <- mapply( 
-        function(f,s) c(f$alpha[s],f$beta[,s]), 
+        function(f,s){
+          s <- min(s,length(f$alpha))
+          c(f$alpha[s],f$beta[,s]) }, 
         object, select)
  
    ## set class and double check correct naming
@@ -92,13 +93,13 @@ logLik.dmr <- function(object, ...){
 
 ## method predict functions
 predict.dmr <- function(object, newdata, 
-                    type=c("link","response","reduction"), ...){
+                    type=c("link","response","class","reduction"), ...){
   B <- coef(object, ...)
   predict(B,newdata=newdata,type=type)
 }
 
 predict.dmrcoef <- function(object, newdata, 
-                  type=c("link","response","reduction"), ...)
+                  type=c("link","response","class","reduction"), ...)
 {
   if(is.vector(newdata)){ newdata <- matrix(newdata, nrow=1) }
   if(is.data.frame(newdata)){ newdata <- as.matrix(newdata) }
@@ -121,8 +122,13 @@ predict.dmrcoef <- function(object, newdata,
       eta <- expeta/rowSums(expeta) }
     rownames(eta) <- rownames(newdata)
     colnames(eta) <- colnames(object)
-    return(as.matrix(eta))
   }
+  if(type=="class"){
+    c <- apply(eta,1,function(e) colnames(eta)[which.max(e)])
+    return(c)
+  }
+  else return(as.matrix(eta))
+
 }
 
 setGeneric("predict")

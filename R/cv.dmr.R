@@ -2,8 +2,10 @@
 
 ## multinomial deviance utility
 mndev <- function(s, x, m, v, f){
+    B <- coef(f,select=s)
+    naz <- is.finite(B[1,]) ## not all zero in training
     E <- predict(f,newdata=v,select=s)
-    L <- rowSums(E*x) - m*log(rowSums(exp(E)))
+    L <- rowSums((x*E)[,naz]) - m*log(rowSums(exp(E[,naz])))
     -2*mean(L)
 }
 
@@ -11,7 +13,7 @@ mndev <- function(s, x, m, v, f){
 cv.dmr <- function(covars, counts, 
                   lambda.start=NULL,
                   nfold=5, foldid=NULL, 
-                  verb=TRUE, cl=NULL, ...){
+                  verb=TRUE, cl=NULL, savek=FALSE, ...){
   
   ## basic input checking
   chk <- collapse(covars,counts,listx=FALSE)
@@ -21,6 +23,7 @@ cv.dmr <- function(covars, counts,
   nobs <- sum(chk$nbin)
 
   ## set shared lambda.start
+  if(verb) cat("calculating lambda.start...\n")
   if(is.null(lambda.start))
   {  
     u <- rowMeans(x)
@@ -45,8 +48,10 @@ cv.dmr <- function(covars, counts,
                       "FORK","PSOCK"))
     stopcl = TRUE
   }
+  if(verb) print(cl)
 
   ## full fit and properties
+  if(verb) cat("full model fit, ")
   full <- dmr(v, x, lambda.start=lambda.start, cl=cl, ...)
 
   ## get lambda
@@ -75,12 +80,16 @@ cv.dmr <- function(covars, counts,
             ncol=nlambda, 
             dimnames=list(levels(foldid),
               paste("seg",1:nlambda,sep=".")))
+  
+  if(savek) kfit <- vector(nfold, mode="list")
+  else kfit <- NULL
 
   if(verb) cat("fold ")
   for(k in levels(foldid)){
     train <- which(foldid!=k)
     fit <- dmr(v[train,], x[train,],
       lambda.start=lambda.start, cl=cl, ...)
+    if(savek) kfit[[k]] <- fit
     oos[k,] <- parSapply(cl,
                 1:nlambda,mndev,
                 x[-train,],m[-train],v[-train,],fit)
@@ -110,7 +119,8 @@ cv.dmr <- function(covars, counts,
           seg.min=seg.min,
           seg.1se=seg.1se,
           lambda.min=lambda.min,
-          lambda.1se=lambda.1se)
+          lambda.1se=lambda.1se,
+          kfit=kfit)
 
   class(out) <- "cv.dmr"
   invisible(out)

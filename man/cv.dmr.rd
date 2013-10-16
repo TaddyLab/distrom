@@ -9,7 +9,7 @@
 cv.dmr(covars, counts, 
     lambda.start=NULL, 
     nfold=5, foldid=NULL,
-    verb=TRUE, cl=NULL, ...)
+    verb=TRUE, cl=NULL, savek=FALSE, ...)
 \method{logLik}{cv.dmr}(object, ...)
 \method{coef}{cv.dmr}(object, select=c("1se","min"), ...)
 \method{plot}{cv.dmr}(x, ...)
@@ -26,6 +26,7 @@ cv.dmr(covars, counts,
 \item{foldid}{ An optional length-n vector of fold memberships for each observation.  If specified, this dictates \code{nfold}.}
 \item{verb}{ Whether to print progress through folds. }
 \item{cl}{ A \code{parallel} library socket cluster; see details of the same argument for the \code{dmr} function. }
+\item{savek}{ Whether to save each fold 'k' dmr fit.}
 \item{...}{ Arguments to \code{dmr}. }
 \item{select}{ In prediction and coefficient extraction, 
   select which "best" model to return: 
@@ -70,6 +71,7 @@ independent Poissons used in \code{logLik.dmr}).
   \item{seg.1se}{ The index of \code{1se} \code{cvm} (see details). }
   \item{lambda.min}{ Penalty at minimum \code{cvm}. }
   \item{lambda.1se}{ Penalty at \code{1se} \code{cvm}. }
+  \item{kfit}{If \code{savek}, the \code{nfold} trained fits.}
  }
 \author{
   Matt Taddy \email{taddy@chicagobooth.edu}

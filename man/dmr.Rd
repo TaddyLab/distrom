@@ -11,7 +11,7 @@ dmr(covars, counts, bins=NULL,
 \method{logLik}{dmr}(object, ...)
 \method{coef}{dmr}(object, select=NULL, k=2, ...)
 \method{predict}{dmr}(object, newdata,
-	type=c("link","response","reduction"), ...)
+	type=c("link","response","class","reduction"), ...)
 }
 \arguments{
 \item{covars}{A dense \code{matrix} 
@@ -32,7 +32,7 @@ with equal probabilities are also multinomial, the model is then fit to these co
 regularization paths from which you want estimates.  Can either be a single value for all categories or a vector of values, one for each category.  If left \code{NULL} the coefficients are selected via an information criteria according to the argument \code{k}.}
 \item{k}{For model selection when \code{select=NULL}, the information criteria penalty on degrees of freedom.  \code{k=2} is the AIC, \code{k=log(n)} is the BIC. }
 \item{type}{
-For \code{predict.dmr}, this is the scale upon which you want prediction. Under "link", just the linear map \code{newdata} times \code{object}, under "response" the fitted multinomial probabilities, and under "reduction" the MNIR sufficient reduction \eqn{X\phi/m}.}
+For \code{predict.dmr}, this is the scale upon which you want prediction. Under "link", just the linear map \code{newdata} times \code{object}, under "response" the fitted multinomial probabilities, under "class" the max-probability class label, and under "reduction" the MNIR sufficient reduction \eqn{X\phi/m}.}
 \item{newdata}{A Matrix with the same number of columns as \code{covars}, unless
 \code{type="reduction"} in which case \code{newdata} is multinomial category count data with the same number of columns as \code{counts}.}
 \item{...}{Additional arguments to \code{gamlr} from \code{dmr} or to \code{coef.dmr} from \code{predict.dmr}.}
