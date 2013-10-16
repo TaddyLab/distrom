@@ -29,7 +29,7 @@ collapse <- function(v,x,bins=NULL,listx=TRUE){
 
   ## uncollapsed exit
   if(is.null(bins)){
-    mu <- log(rowMeans(x) + 1)
+    mu <- suppressWarnings(log(rowMeans(x) + 1))
     nbin <- rep(1,nrow(x))
     if(listx) x <- sapply(colnames(x),
                 function(j) x[,j,drop=FALSE],simplify=FALSE)
@@ -54,7 +54,7 @@ collapse <- function(v,x,bins=NULL,listx=TRUE){
     j = xstm$j, x=xstm$x,
     dims=c(nlevels(I),ncol(x)),
     dimnames=list(levels(I),colnames(x)))
-  mu <- log(rowMeans(x) + nbin)
+  mu <- suppressWarnings(log(rowMeans(x) + nbin))
   if(listx) x <- sapply(colnames(x),
               function(j) x[,j,drop=FALSE],simplify=FALSE)
 
