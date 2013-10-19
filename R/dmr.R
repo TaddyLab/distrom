@@ -108,12 +108,13 @@ predict.dmrcoef <- function(object, newdata,
   type=match.arg(type)
   if(type=="reduction"){
     m <- rowSums(newdata)
-    m[m==0] <- 1
-    newdata <- newdata/m
+    newdata <- newdata/(m + 1*(m==0))
     eta <- tcrossprod(newdata,object[-1,])
     colnames(eta) <- rownames(object)[-1]
     rownames(eta) <- rownames(newdata)
-    return(as.data.frame(as.matrix(eta)))
+    eta <- as.data.frame(as.matrix(eta))
+    eta$m <- m
+    return(eta)
   }
   else{
     eta <- t(tcrossprod(t(object[-1,,drop=FALSE]),newdata) + object[1,])

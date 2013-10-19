@@ -37,7 +37,7 @@ data(we8there)
 
 ## regress counts onto 5-star overall rating
 fits <- dmr(we8thereRatings$Overall, 
-			we8thereCounts, bins=5, gamma=1)
+			we8thereCounts, bins=6, gamma=1)
 
 ## plot fits for a few individual terms
 terms <- c("first date","chicken wing",

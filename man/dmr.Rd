@@ -32,7 +32,7 @@ with equal probabilities are also multinomial, the model is then fit to these co
 regularization paths from which you want estimates.  Can either be a single value for all categories or a vector of values, one for each category.  If left \code{NULL} the coefficients are selected via an information criteria according to the argument \code{k}.}
 \item{k}{For model selection when \code{select=NULL}, the information criteria penalty on degrees of freedom.  \code{k=2} is the AIC, \code{k=log(n)} is the BIC. }
 \item{type}{
-For \code{predict.dmr}, this is the scale upon which you want prediction. Under "link", just the linear map \code{newdata} times \code{object}, under "response" the fitted multinomial probabilities, under "class" the max-probability class label, and under "reduction" the MNIR sufficient reduction \eqn{X\phi/m}.}
+For \code{predict.dmr}, this is the scale upon which you want prediction. Under "link", just the linear map \code{newdata} times \code{object}, under "response" the fitted multinomial probabilities, under "class" the max-probability class label, and under "reduction" the MNIR sufficient reduction \eqn{X\phi/m}, plus an extra column \eqn{m} containing row totals of \eqn{X}.}
 \item{newdata}{A Matrix with the same number of columns as \code{covars}, unless
 \code{type="reduction"} in which case \code{newdata} is multinomial category count data with the same number of columns as \code{counts}.}
 \item{...}{Additional arguments to \code{gamlr} from \code{dmr} or to \code{coef.dmr} from \code{predict.dmr}.}
@@ -48,9 +48,7 @@ For \code{predict.dmr}, this is the scale upon which you want prediction. Under 
 	\code{coef.dmr} builds a matrix of multinomial logistic regression coefficients from the \code{length(object)} list of \code{gamlr} fits. If the \code{select} index is not null, \code{coef.dmr} returns the corresponding coefficients.  More likely, selection uses an information criteria via \code{AIC}
 	on Poisson deviance for each individual response dimension. The complexity penalty is specified via argument \code{k}.  Combined coefficients across all dimensions are then returned as a \code{dmrcoef} s4-class object.
 
-	\code{predict.dmr} takes either a \code{dmr} or \code{dmrcoef} object and returns predicted values for \code{newdata} on the scale defined by the \code{type} argument.  For \code{type="reduction"} this is a \code{data.frame} of sufficient reduction factors as in the MNIR paper, and otherwise it
-	is a matrix of predicted class probabilities (\code{type="response"})
-	or pre-logit linear equations (\code{type="link"}).
+	\code{predict.dmr} takes either a \code{dmr} or \code{dmrcoef} object and returns predicted values for \code{newdata} on the scale defined by the \code{type} argument.  
 }
 \value{  \code{dmr} returns the \code{dmr} s3 object: an \code{ncol(counts)}-length list of fitted \code{gamlr} objects, with the added attributes \code{nlambda} and \code{nobs}. }
 \references{
