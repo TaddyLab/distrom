@@ -39,7 +39,7 @@ collapse <- function(v,x,bins=NULL,listx=TRUE){
   ## binning
   qs <- (0:bins)/bins
   cutit <- function(vj){
-    if(length(unique(vj))<=bins) return(factor(vj))
+    if(length(unique(vj))<=bins) return(factor(vj)) 
     return(cut(vj, 
             breaks=unique(quantile(vj, qs)), 
             include.lowest=TRUE))
