@@ -6,8 +6,8 @@
 \title{Distributed Multinomial Regression}
 \description{Gamma-lasso path estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.}
 \usage{
-dmr(covars, counts, bins=NULL, 
-    cl=NULL,  ...)
+dmr(covars=NULL, counts=NULL, bins=NULL, 
+    cl=NULL, chk=NULL, ...)
 \method{logLik}{dmr}(object, ...)
 \method{coef}{dmr}(object, select=NULL, k=2, ...)
 \method{predict}{dmr}(object, newdata,
@@ -23,6 +23,9 @@ dmr(covars, counts, bins=NULL,
 \item{bins}{Number of bins into which we will attempt to collapse each column of \code{covars}.  Since sums of multinomials 
 with equal probabilities are also multinomial, the model is then fit to these collapsed `observations'. \code{bins=NULL}
  does no collapsing. }
+\item{chk}{
+	If \code{chk=NULL}, the first line of \code{dmr} calls \code{chk = collapse(covars,counts,bins)}.  Instead, if this argment is specified we assume you know what you are doing and have created an appropriate \code{chk} list.  Be careful: you skip most sanity checks if this is specified.
+}
 \item{cl}{A \code{parallel} library socket cluster.  If \code{is.null(cl)},
  a cluster is initialized with 
  \code{makeCluster(detectCores(),type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))} and

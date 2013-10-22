@@ -14,10 +14,10 @@ porun <- function(xj, v, mu, nlambda, ...){
 }
 
 ## main function
-dmr <- function(covars, counts, bins=NULL, 
-                cl=NULL, ...)
+dmr <- function(covars=NULL, counts=NULL, bins=NULL, 
+                cl=NULL, chk=NULL, ...)
 {
-  chk <- collapse(covars, counts, bins)
+  if(is.null(chk)) chk <- collapse(covars, counts, bins)
 
   ## grab defaults
   argl <- list(...)
