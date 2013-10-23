@@ -1,7 +1,7 @@
   
 #####  argument checking and binning #####
 
-collapse <- function(v,x,bins=NULL,listx=TRUE){
+collapse <- function(v,x,mu=NULL,bins=NULL,listx=TRUE){
 
 	if(inherits(v,c("Matrix","simple_triplet_matrix")))
 		v <- as.matrix(v)
@@ -29,7 +29,8 @@ collapse <- function(v,x,bins=NULL,listx=TRUE){
 
   ## uncollapsed exit
   if(is.null(bins)){
-    mu <- suppressWarnings(log(rowMeans(x) + 1))
+    if(is.null(mu)) mu <- suppressWarnings(log(rowMeans(x) + 1))
+    if(length(mu)==1) mu <- rep(mu,nrow(x))
     nbin <- rep(1,nrow(x))
     if(listx) x <- sapply(colnames(x),
                 function(j) x[,j,drop=FALSE],simplify=FALSE)
@@ -54,6 +55,7 @@ collapse <- function(v,x,bins=NULL,listx=TRUE){
     j = xstm$j, x=xstm$x,
     dims=c(nlevels(I),ncol(x)),
     dimnames=list(levels(I),colnames(x)))
+  if(!is.null(mu)) warning("pre-specified mu is ignored after binning.")
   mu <- suppressWarnings(log(rowMeans(x) + nbin))
   if(listx) x <- sapply(colnames(x),
               function(j) x[,j,drop=FALSE],simplify=FALSE)

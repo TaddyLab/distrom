@@ -7,7 +7,7 @@
 \description{OOS experiments for a multinomial logistic regression factorized into independent penalized Poisson log regressions.}
 \usage{
 cv.dmr(covars, counts, 
-    lambda.start=NULL, 
+    mu=NULL, lambda.start=NULL, 
     nfold=5, foldid=NULL,
     verb=TRUE, cl=NULL, savek=FALSE, ...)
 \method{logLik}{cv.dmr}(object, ...)
@@ -21,6 +21,7 @@ cv.dmr(covars, counts,
 \item{counts}{A dense \code{matrix} 
       or sparse \code{Matrix} of
       response counts. }
+\item{mu}{Possible pre-specified fixed effects, as in the same argument to \code{dmr}.}
 \item{lambda.start}{Where to start each regularization path.  If \code{NULL} it uses the maximum absolute gradient across all category (i.e. the smallest \eqn{\lambda} such that all coefficients are set to zero). }
 \item{nfold}{ The number of cross validation folds. }
 \item{foldid}{ An optional length-n vector of fold memberships for each observation.  If specified, this dictates \code{nfold}.}
@@ -81,7 +82,7 @@ independent Poissons used in \code{logLik.dmr}).
 \examples{
 library(MASS)
 data(fgl)
-fits <- cv.dmr(fgl[,1:9], fgl$type)
+fits <- cv.dmr(fgl[,1:9], fgl$type, mu=0)
 plot(fits)
 abline(v=log(fits$lambda[which.min(AIC(fits))]), 
 		col="darkorange", lty=3)

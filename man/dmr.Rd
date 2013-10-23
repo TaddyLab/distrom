@@ -6,8 +6,7 @@
 \title{Distributed Multinomial Regression}
 \description{Gamma-lasso path estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.}
 \usage{
-dmr(covars=NULL, counts=NULL, bins=NULL, 
-    cl=NULL, chk=NULL, ...)
+dmr(covars, counts, mu=NULL, bins=NULL, cl=NULL, ...)
 \method{logLik}{dmr}(object, ...)
 \method{coef}{dmr}(object, select=NULL, k=2, ...)
 \method{predict}{dmr}(object, newdata,
@@ -20,12 +19,11 @@ dmr(covars=NULL, counts=NULL, bins=NULL,
 \item{counts}{A dense \code{matrix} 
       or sparse \code{Matrix} of
       response counts. }
+\item{mu}{
+	Pre-specified fixed effects for each observation in the Poisson regression linear equation.  If \code{mu=NULL}, then this is fixed as \code{log(rowMeans(x)+1)}.  Note that if \code{bins} is non-null then this argument is ignored and \code{mu} is recalculated on the collapsed data.}
 \item{bins}{Number of bins into which we will attempt to collapse each column of \code{covars}.  Since sums of multinomials 
 with equal probabilities are also multinomial, the model is then fit to these collapsed `observations'. \code{bins=NULL}
  does no collapsing. }
-\item{chk}{
-	If \code{chk=NULL}, the first line of \code{dmr} calls \code{chk = collapse(covars,counts,bins)}.  Instead, if this argment is specified we assume you know what you are doing and have created an appropriate \code{chk} list.  Be careful: you skip most sanity checks if this is specified.
-}
 \item{cl}{A \code{parallel} library socket cluster.  If \code{is.null(cl)},
  a cluster is initialized with 
  \code{makeCluster(detectCores(),type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))} and

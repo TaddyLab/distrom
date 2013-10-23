@@ -11,12 +11,12 @@ mndev <- function(s, x, m, v, f){
 
 ## outer R loop that calls dmr
 cv.dmr <- function(covars, counts, 
-                  lambda.start=NULL,
+                  mu=NULL, lambda.start=NULL,
                   nfold=5, foldid=NULL, 
                   verb=TRUE, cl=NULL, savek=FALSE, ...){
   
   ## basic input checking
-  chk <- collapse(covars,counts,listx=FALSE)
+  chk <- collapse(covars,counts,mu=mu,listx=FALSE)
   x <- chk$x
   v <- chk$v
   m <- rowSums(x)
@@ -26,7 +26,7 @@ cv.dmr <- function(covars, counts,
   if(verb) cat("calculating lambda.start...\n")
   if(is.null(lambda.start))
   {  
-    u <- rowMeans(x)
+    u <- exp(chk$mu)
     e0 = as.matrix(x-outer(u,colSums(x)/sum(u)))
     g0 = abs(t(v)%*%e0)/nrow(v)
     std = list(...)$standardize
@@ -87,8 +87,8 @@ cv.dmr <- function(covars, counts,
   if(verb) cat("fold ")
   for(k in levels(foldid)){
     train <- which(foldid!=k)
-    fit <- dmr(v[train,], x[train,],
-      lambda.start=lambda.start, cl=cl, ...)
+    fit <- dmr(v[train,], x[train,], mu=mu,
+            lambda.start=lambda.start, cl=cl, ...)
     if(savek) kfit[[k]] <- fit
     oos[k,] <- parSapply(cl,
                 1:nlambda,mndev,
