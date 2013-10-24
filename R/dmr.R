@@ -14,15 +14,10 @@ porun <- function(xj, v, mu, nlambda, ...){
 }
 
 ## main function
-dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL,  ...)
+dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL, 
+                nlambda=formals(gamlr)$nlambda, ...)
 {
   chk <- collapse(covars, counts, mu, bins)
-
-  ## grab defaults
-  argl <- list(...)
-  nlambda <- ifelse(is.null(argl$nlambda),
-                    formals(gamlr)$nlambda,
-                    argl$nlambda)
 
   ## parallel computing
   stopcl = FALSE

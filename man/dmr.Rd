@@ -6,7 +6,8 @@
 \title{Distributed Multinomial Regression}
 \description{Gamma-lasso path estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.}
 \usage{
-dmr(covars, counts, mu=NULL, bins=NULL, cl=NULL, ...)
+dmr(covars, counts, mu=NULL, bins=NULL, cl=NULL, 
+	nlambda=formals(gamlr)$nlambda, ...)
 \method{logLik}{dmr}(object, ...)
 \method{coef}{dmr}(object, select=NULL, k=2, ...)
 \method{predict}{dmr}(object, newdata,
@@ -29,6 +30,7 @@ with equal probabilities are also multinomial, the model is then fit to these co
  \code{makeCluster(detectCores(),type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))} and
     	 stopped via \code{stopCluster(cl)} upon exit.  See
 	\code{help(parallel)} for details. }
+\item{nlambda}{The number of lambda values along each regularization path.  Defaults to the default in \code{gamlr}.}
 \item{select}{For \code{coef.dmr}, this is the index of the 
 regularization paths from which you want estimates.  Can either be a single value for all categories or a vector of values, one for each category.  If left \code{NULL} the coefficients are selected via an information criteria according to the argument \code{k}.}
 \item{k}{For model selection when \code{select=NULL}, the information criteria penalty on degrees of freedom.  \code{k=2} is the AIC, \code{k=log(n)} is the BIC. }
