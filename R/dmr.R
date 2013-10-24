@@ -7,7 +7,7 @@ setClass("dmrcoef",
 
 ## undocumented inner loop function
 porun <- function(xj, v, mu, nlambda, ...){
-  fit <- gamlr(v, xj, family="poisson", fix=mu, ...)
+  fit <- gamlr(v, xj, family="poisson", fix=mu, nlambda=nlambda, ...)
   ## below only works if you've specified an outfile in makeCluster
   if(length(fit$lambda)<nlambda) print(colnames(xj))
   return(fit)
