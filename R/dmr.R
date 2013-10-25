@@ -18,6 +18,7 @@ dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL,
                 nlambda=formals(gamlr)$nlambda, ...)
 {
   chk <- collapse(covars, counts, mu, bins)
+  rm(covars,counts,mu)
 
   ## parallel computing
   stopcl = FALSE
