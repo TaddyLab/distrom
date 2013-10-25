@@ -25,6 +25,7 @@ collapse <- function(v,x,mu=NULL,bins=NULL,listx=TRUE){
       dims=dim(x),dimnames=dimnames(x))
   }
   x=as(x,"dgCMatrix") 
+  rownames(x) <- NULL
   if(is.null(colnames(x))) colnames(x) <- 1:ncol(x)
 
   if(nrow(x) != nrow(v)) 
