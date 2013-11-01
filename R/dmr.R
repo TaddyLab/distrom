@@ -6,19 +6,29 @@ setClass("dmrcoef",
   contains="dgCMatrix")
 
 ## undocumented inner loop function
-porun <- function(xj, v, mu, nlambda, ...){
-  fit <- gamlr(v, xj, family="poisson", fix=mu, nlambda=nlambda, ...)
+onerun <- function(xj, argl){
+  argl$y <- xj
+  fit <- do.call(gamlr,argl)
   ## below only works if you've specified an outfile in makeCluster
-  if(length(fit$lambda)<nlambda) print(colnames(xj))
+  if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
   return(fit)
 }
 
 ## main function
-dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL, 
-                nlambda=formals(gamlr)$nlambda, ...)
+dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL, ...)
 {
   chk <- collapse(covars, counts, mu, bins)
   rm(covars,counts,mu)
+
+  #build the argument list
+  argl <- list(...)
+  argl$x <- chk$v
+  argl$fix <- chk$mu
+  chk$v <- chk$mu <- NULL
+  if(is.null(argl$family))
+    argl$family="poisson"
+  if(is.null(argl$nlambda))
+    argl$nlambda <- formals(gamlr)$nlambda
 
   ## parallel computing
   stopcl = FALSE
@@ -29,8 +39,7 @@ dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL,
                       "FORK","PSOCK"))
     stopcl = TRUE
   }
-  mods <- parLapply(cl,chk$x,porun,
-            v=chk$v,mu=chk$mu,nlambda=nlambda,...)
+  mods <- parLapply(cl,chk$x,onerun,argl=argl)
   if(stopcl) stopCluster(cl)
 
   ## align names (probably unnecessary)
@@ -39,7 +48,7 @@ dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL,
   ## classy exit
   class(mods) <- "dmr"
   attr(mods,"nobs") <- sum(chk$nbin)
-  attr(mods,"nlambda") <- nlambda
+  attr(mods,"nlambda") <- argl$nlambda
   return(mods)
 }
 

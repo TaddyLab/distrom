@@ -1,11 +1,11 @@
 ##### OOS experimentation with distributed MN regression #####
 
 ## multinomial deviance utility
-mndev <- function(s, x, m, v, f){
+mndev <- function(s, counts, m, v, f){
     B <- coef(f,select=s)
-    naz <- is.finite(B[1,]) ## not all zero in training
-    E <- predict(f,newdata=v,select=s)
-    L <- rowSums((x*E)[,naz]) - m*log(rowSums(exp(E[,naz])))
+    naz <- which(is.finite(B[1,])) ## not all zero in training
+    E <- t(tcrossprod(t(B[-1,,drop=FALSE]),v) + B[1,])
+    L <- rowSums((counts*E)[,naz]) - m*log(rowSums(exp(E[,naz])))
     -2*mean(L)
 }
 
@@ -21,6 +21,9 @@ cv.dmr <- function(covars, counts,
   v <- chk$v
   m <- rowSums(x)
   nobs <- sum(chk$nbin)
+  if(is.null(list(...)$bins))
+    mu <- chk$mu
+  else mu <- NULL
 
   ## set shared lambda.start
   if(verb) cat("calculating lambda.start...\n")
@@ -42,7 +45,7 @@ cv.dmr <- function(covars, counts,
   ## parallel setup
   stopcl = FALSE
   if(is.null(cl)){
-    cl <- makeCluster(detectCores(),
+    cl <- makeCluster(min(detectCores(),ncol(x)),
                     type=ifelse(
                       .Platform$OS.type=="unix",
                       "FORK","PSOCK"))
@@ -52,7 +55,7 @@ cv.dmr <- function(covars, counts,
 
   ## full fit and properties
   if(verb) cat("full model fit, ")
-  full <- dmr(v, x, lambda.start=lambda.start, cl=cl, ...)
+  full <- dmr(v, x, mu=mu, lambda.start=lambda.start, cl=cl, ...)
 
   ## get lambda
   lambda <- sort(
@@ -61,7 +64,7 @@ cv.dmr <- function(covars, counts,
   nlambda <- length(lambda)
 
   #### get full model MN deviance and df
-  dev <- parSapply(cl,1:nlambda,mndev,x,m,v,full)
+  dev <- parSapply(cl,1:nlambda,mndev,x,m,v,full)  
   names(dev) <- paste("seg",1:nlambda,sep=".")
   df <- sapply(full, 
           function(f) c(f$df,rep(NA,nlambda-length(f$df))))
@@ -85,14 +88,16 @@ cv.dmr <- function(covars, counts,
   else kfit <- NULL
 
   if(verb) cat("fold ")
+  mut <- mu
   for(k in levels(foldid)){
     train <- which(foldid!=k)
-    fit <- dmr(v[train,], x[train,], mu=mu,
+    if(!is.null(mut)) mut <- mu[train]
+    fit <- dmr(v[train,,drop=FALSE], x[train,], mu=mut,
             lambda.start=lambda.start, cl=cl, ...)
     if(savek) kfit[[k]] <- fit
     oos[k,] <- parSapply(cl,
                 1:nlambda,mndev,
-                x[-train,],m[-train],v[-train,],fit)
+                counts=x[-train,],m=m[-train],v=v[-train,,drop=FALSE],f=fit)
     if(verb) cat(sprintf("%s,",k))
   }
   

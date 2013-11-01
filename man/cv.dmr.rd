@@ -41,10 +41,10 @@ cv.dmr(covars, counts,
 cross validation to evaluate out-of-sample (OOS)
 multinomial deviance under different penalty weights.  
 
-Note that model selection
+Model selection
 here is grouped: the same \eqn{\lambda} is assumed for each response category.  This
 is in contrast to the core \code{dmr} function, where coefficients are selected
-independently via AIC for each response category (based on Poisson deviance).
+independently via AIC for each response category (based on Poisson deviance).  For this reason, \code{cv.dmr} can take a very long time for high-dimensional counts (e.g., the we8there data).
 
 \code{plot.cv.dmr} can be used to plot the results: it 
 shows mean OOS multinomial deviance with 1se error bars. Average degrees of
