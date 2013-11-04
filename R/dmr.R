@@ -116,9 +116,8 @@ predict.dmrcoef <- function(object, newdata,
     z <- tcrossprod(newdata,object[-1,])
     colnames(z) <- rownames(object)[-1]
     rownames(z) <- rownames(newdata)
-    z <- as.data.frame(as.matrix(z))
-    z$m <- m
-    return(z)
+    z <- as.matrix(z)
+    return(cbind(z,m=m))
   }
   else{
     eta <- t(tcrossprod(t(object[-1,,drop=FALSE]),newdata) + object[1,])

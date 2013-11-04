@@ -36,7 +36,7 @@ Matt Taddy, \email{taddy@chicagobooth.edu}
 data(we8there)
 
 ## regress counts onto 5-star overall rating
-fits <- dmr(we8thereRatings$Overall, 
+fits <- dmr(we8thereRatings[,'Overall',drop=FALSE], 
 			we8thereCounts, bins=6, gamma=1)
 
 ## plot fits for a few individual terms
@@ -55,9 +55,9 @@ B[2,order(B[2,])[1:10]]
 B[2,order(-B[2,])[1:10]]
 
 ## do MNIR projection onto factors
-Z <- predict(B,we8thereCounts,type="reduction") 
+z <- predict(B,we8thereCounts,type="reduction") 
 ## fit a fwd model to the factors
-summary(fwd <- lm(we8thereRatings$Overall ~ ., data=Z)) 
+summary(fwd <- lm(we8thereRatings$Overall ~ z)) 
 ## truncate the fwd predictions to our known range
 fwd$fitted[fwd$fitted<1] <- 1
 fwd$fitted[fwd$fitted>5] <- 5
