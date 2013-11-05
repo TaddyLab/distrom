@@ -53,7 +53,7 @@ For \code{predict.dmr}, this is the scale upon which you want prediction. Under 
 
 	\code{predict.dmr} takes either a \code{dmr} or \code{dmrcoef} object and returns predicted values for \code{newdata} on the scale defined by the \code{type} argument.  
 }
-\value{  \code{dmr} returns the \code{dmr} s3 object: an \code{ncol(counts)}-length list of fitted \code{gamlr} objects, with the added attributes \code{nlambda} and \code{nobs}. }
+\value{  \code{dmr} returns the \code{dmr} s3 object: an \code{ncol(counts)}-length list of fitted \code{gamlr} objects, with the added attributes \code{nlambda}, \code{mu}, and \code{nobs}. }
 \references{
 Taddy (2013) Distributed Multinomial Regression
 

@@ -49,6 +49,7 @@ dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL, ...)
   class(mods) <- "dmr"
   attr(mods,"nobs") <- sum(chk$nbin)
   attr(mods,"nlambda") <- argl$nlambda
+  attr(mods,"mu") <- chk$mu
   return(mods)
 }
 

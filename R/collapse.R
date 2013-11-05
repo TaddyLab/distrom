@@ -33,8 +33,9 @@ collapse <- function(v,x,mu=NULL,bins=NULL,listx=TRUE){
 
   ## uncollapsed exit
   if(is.null(bins)){
-    if(is.null(mu)) mu <- suppressWarnings(log(rowMeans(x) + 1))
+    if(is.null(mu)) mu <- suppressWarnings(log(rowMeans(x)+1))
     if(length(mu)==1) mu <- rep(mu,nrow(x))
+    mu[is.infinite(mu)] <- -1e6 # a zero row total
     nbin <- rep(1,nrow(x))
     if(listx) x <- sapply(colnames(x),
                 function(j) x[,j,drop=FALSE],simplify=FALSE)
@@ -60,7 +61,7 @@ collapse <- function(v,x,mu=NULL,bins=NULL,listx=TRUE){
     dims=c(nlevels(I),ncol(x)),
     dimnames=list(levels(I),colnames(x)))
   if(!is.null(mu)) warning("pre-specified mu is ignored after binning.")
-  mu <- suppressWarnings(log(rowMeans(x) + nbin))
+  mu <- suppressWarnings(log(rowMeans(x)+1))
   if(listx) x <- sapply(colnames(x),
               function(j) x[,j,drop=FALSE],simplify=FALSE)
 
