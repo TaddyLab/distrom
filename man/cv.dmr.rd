@@ -82,7 +82,7 @@ independent Poissons used in \code{logLik.dmr}).
 \examples{
 library(MASS)
 data(fgl)
-fits <- cv.dmr(fgl[,1:9], fgl$type, mu=0)
+fits <- cv.dmr(fgl[,1:9], fgl$type)
 plot(fits)
 abline(v=log(fits$lambda[which.min(AIC(fits))]), 
 		col="darkorange", lty=3)

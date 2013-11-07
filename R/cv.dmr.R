@@ -16,10 +16,10 @@ cv.dmr <- function(covars, counts,
                   verb=TRUE, cl=NULL, savek=FALSE, ...){
   
   ## basic input checking
-  chk <- collapse(covars,counts,mu=mu,listx=FALSE)
-  x <- chk$x
+  chk <- collapse(covars,counts,mu=mu)
+  counts <- chk$counts
   v <- chk$v
-  m <- rowSums(x)
+  m <- rowSums(counts)
   nobs <- sum(chk$nbin)
   if(is.null(list(...)$bins))
     mu <- chk$mu
@@ -30,7 +30,7 @@ cv.dmr <- function(covars, counts,
   if(is.null(lambda.start))
   {  
     u <- exp(chk$mu)
-    e0 = as.matrix(x-outer(u,colSums(x)/sum(u)))
+    e0 = as.matrix(counts-outer(u,colSums(counts)/sum(u)))
     g0 = abs(t(v)%*%e0)/nrow(v)
     std = list(...)$standardize
     if(is.null(std)) std = TRUE
@@ -45,7 +45,7 @@ cv.dmr <- function(covars, counts,
   ## parallel setup
   stopcl = FALSE
   if(is.null(cl)){
-    cl <- makeCluster(min(detectCores(),ncol(x)),
+    cl <- makeCluster(min(detectCores(),ncol(counts)),
                     type=ifelse(
                       .Platform$OS.type=="unix",
                       "FORK","PSOCK"))
@@ -55,7 +55,7 @@ cv.dmr <- function(covars, counts,
 
   ## full fit and properties
   if(verb) cat("full model fit, ")
-  full <- dmr(v, x, mu=mu, lambda.start=lambda.start, cl=cl, ...)
+  full <- dmr(v, counts, mu=mu, lambda.start=lambda.start, cl=cl, ...)
 
   ## get lambda
   lambda <- sort(
@@ -64,7 +64,7 @@ cv.dmr <- function(covars, counts,
   nlambda <- length(lambda)
 
   #### get full model MN deviance and df
-  dev <- parSapply(cl,1:nlambda,mndev,x,m,v,full)  
+  dev <- parSapply(cl,1:nlambda,mndev,counts,m,v,full)  
   names(dev) <- paste("seg",1:nlambda,sep=".")
   df <- sapply(full, 
           function(f) c(f$df,rep(NA,nlambda-length(f$df))))
@@ -92,12 +92,12 @@ cv.dmr <- function(covars, counts,
   for(k in levels(foldid)){
     train <- which(foldid!=k)
     if(!is.null(mut)) mut <- mu[train]
-    fit <- dmr(v[train,,drop=FALSE], x[train,], mu=mut,
+    fit <- dmr(v[train,,drop=FALSE], counts[train,], mu=mut,
             lambda.start=lambda.start, cl=cl, ...)
     if(savek) kfit[[k]] <- fit
     oos[k,] <- parSapply(cl,
                 1:nlambda,mndev,
-                counts=x[-train,],m=m[-train],v=v[-train,,drop=FALSE],f=fit)
+                counts=counts[-train,],m=m[-train],v=v[-train,,drop=FALSE],f=fit)
     if(verb) cat(sprintf("%s,",k))
   }
   

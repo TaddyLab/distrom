@@ -5,7 +5,7 @@ setClass("dmrcoef",
   representation(lambda="numeric"), 
   contains="dgCMatrix")
 
-## undocumented inner loop function
+## inner loop function
 onerun <- function(xj, argl){
   argl$y <- xj
   fit <- do.call(gamlr,argl)
@@ -14,42 +14,65 @@ onerun <- function(xj, argl){
   return(fit)
 }
 
+## convert Matrix to list of columns
+listcol <- function(x,cl){
+  rownames(x) <- NULL
+  if(length(cl) > 3*ncol(x)){
+    N <- length(cl)
+    chunks <- round(seq.int(0,ncol(x),length.out=N+1))
+    xblock <- lapply(1:N, 
+      function(i) x[,(chunks[i]+1):chunks[i+1]])
+    xlist <- parLapply(cl, xblock, 
+      function(x) sapply(colnames(x), function(j) x[,j,drop=FALSE]))
+    xlist <- unlist(xlist, recursive=FALSE)
+  }
+  else{ xlist <- sapply(colnames(x), function(j) x[,j,drop=FALSE]) }
+ return(xlist) 
+}
+
+
 ## main function
 dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL, ...)
 {
-  chk <- collapse(covars, counts, mu, bins)
-  rm(covars,counts,mu)
-
-  #build the argument list
+  #build the default argument list
   argl <- list(...)
-  argl$x <- chk$v
-  argl$fix <- chk$mu
-  chk$v <- chk$mu <- NULL
   if(is.null(argl$family))
     argl$family="poisson"
   if(is.null(argl$nlambda))
     argl$nlambda <- formals(gamlr)$nlambda
+  if(is.null(argl$verb))
+    argl$verb <- FALSE
 
-  ## parallel computing
+  ## start cluster
   stopcl = FALSE
   if(is.null(cl)){
-    cl <- makeCluster(detectCores(),
+    cl <- makeCluster(detectCores(), 
                     type=ifelse(
                       .Platform$OS.type=="unix",
                       "FORK","PSOCK"))
     stopcl = TRUE
   }
-  mods <- parLapply(cl,chk$x,onerun,argl=argl)
+  if(argl$verb) print(cl)
+
+  ## collapse and convert counts to list
+  chk <- collapse(covars, counts, mu, bins)
+  argl$x <- chk$v
+  argl$fix <- chk$mu
+  nobs <- sum(chk$nbin)
+  counts <- listcol(chk$counts,cl)
+  rm(chk,covars,mu)
+
+  mods <- parLapply(cl,counts,onerun,argl=argl)
   if(stopcl) stopCluster(cl)
 
   ## align names (probably unnecessary)
-  mods <- mods[names(chk$x)]
+  mods <- mods[names(counts)]
 
   ## classy exit
   class(mods) <- "dmr"
-  attr(mods,"nobs") <- sum(chk$nbin)
+  attr(mods,"nobs") <- nobs
   attr(mods,"nlambda") <- argl$nlambda
-  attr(mods,"mu") <- chk$mu
+  attr(mods,"mu") <- argl$fix
   return(mods)
 }
 
