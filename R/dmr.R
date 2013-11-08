@@ -6,9 +6,8 @@ setClass("dmrcoef",
   contains="dgCMatrix")
 
 ## inner loop function
-onerun <- function(xj, argl){
-  argl$y <- xj
-  fit <- do.call(gamlr,argl)
+onerun <- function(xj){
+  fit <- do.call(gamlr,c(list(y=xj),argl))
   gc()
   ## below only works if you've specified an outfile in makeCluster
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
@@ -35,7 +34,7 @@ dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL, ...)
                       .Platform$OS.type=="unix",
                       "FORK","PSOCK"))
     stopcl = TRUE
-  }
+  } 
   if(argl$verb) print(cl)
 
   ## collapse and clean
@@ -57,11 +56,12 @@ dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL, ...)
       recursive=FALSE)
   } else{ counts <- sapply(colnames(chk$counts), function(j) chk$counts[,j,drop=FALSE]) }
   if(argl$verb) 
-    cat(sprintf("split counts into %d vectors.\n",length(counts)))
+    cat(sprintf("split counts into a list of %d vectors.\n",length(counts)))
 
   rm(chk,covars,mu) # quick clean
   ## run in parallel
-  mods <- parLapply(cl,counts,onerun,argl=argl)
+  clusterExport(cl,"argl",envir=environment())
+  mods <- parLapply(cl,counts,onerun)
   if(stopcl) stopCluster(cl)
 
   ## align names (probably unnecessary)
