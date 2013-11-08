@@ -14,23 +14,6 @@ onerun <- function(xj, argl){
   return(fit)
 }
 
-## convert Matrix to list of columns
-listcol <- function(x,cl){
-  rownames(x) <- NULL
-  if(length(cl) > 3*ncol(x)){
-    N <- length(cl)
-    chunks <- round(seq.int(0,ncol(x),length.out=N+1))
-    xblock <- lapply(1:N, 
-      function(i) x[,(chunks[i]+1):chunks[i+1]])
-    xlist <- parLapply(cl, xblock, 
-      function(x) sapply(colnames(x), function(j) x[,j,drop=FALSE]))
-    xlist <- unlist(xlist, recursive=FALSE)
-  }
-  else{ xlist <- sapply(colnames(x), function(j) x[,j,drop=FALSE]) }
- return(xlist) 
-}
-
-
 ## main function
 dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL, ...)
 {
@@ -54,14 +37,29 @@ dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL, ...)
   }
   if(argl$verb) print(cl)
 
-  ## collapse and convert counts to list
+  ## collapse and clean
   chk <- collapse(covars, counts, mu, bins)
+  cat(sprintf("fitting %d observations on %d categories, %d covariates.\n",
+        nrow(chk$v), ncol(chk$counts), ncol(chk$v)))
   argl$x <- chk$v
   argl$fix <- chk$mu
   nobs <- sum(chk$nbin)
-  counts <- listcol(chk$counts,cl)
-  rm(chk,covars,mu)
 
+  ## convert counts to list
+  rownames(chk$counts) <- NULL
+  if(ncol(chk$counts) > 24 | nrow(chk$counts) > 1e3)
+  { chunks <- unique(round(seq.int(0,ncol(chk$counts),length.out=length(cl)+1)))
+    cblock <- lapply(1:(length(chunks)-1), 
+      function(i) chk$counts[,(chunks[i]+1):chunks[i+1]])
+    counts <- unlist(parLapply(cl, cblock, 
+      function(x) sapply(colnames(x), function(j) x[,j,drop=FALSE])),
+      recursive=FALSE)
+  } else{ counts <- sapply(colnames(chk$counts), function(j) chk$counts[,j,drop=FALSE]) }
+  if(argl$verb) 
+    cat(sprintf("split counts into %d vectors.\n",length(counts)))
+
+  rm(chk,covars,mu) # quick clean
+  ## run in parallel
   mods <- parLapply(cl,counts,onerun,argl=argl)
   if(stopcl) stopCluster(cl)
 
