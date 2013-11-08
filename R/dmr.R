@@ -10,7 +10,6 @@ onerun <- function(xj, argl){
   argl$y <- xj
   fit <- do.call(gamlr,argl)
   gc()
-  print(ls())
   ## below only works if you've specified an outfile in makeCluster
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
   return(fit)
