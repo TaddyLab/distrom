@@ -8,8 +8,8 @@ setClass("dmrcoef",
 ## inner loop function
 onerun <- function(xj){
   fit <- do.call(gamlr,c(list(y=xj),argl))
-  gc()
-  ## below only works if you've specified an outfile in makeCluster
+  ## print works only if you've specified an outfile in makeCluster
+  print(memory.profile())
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
   return(fit)
 }

@@ -27,10 +27,10 @@ with equal probabilities are also multinomial, the model is then fit to these co
 \item{cl}{A \code{parallel} library socket cluster.  If \code{is.null(cl)},
  a cluster is initialized with 
  \code{makeCluster(min(detectCores(),ncol(x)),}
-	\code{type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK"))} 
+	\code{type=ifelse(} \code{.Platform$OS.type} \code{=="unix","FORK","PSOCK"))} 
 	and stopped via \code{stopCluster(cl)} upon exit.  See
 	\code{help(parallel)} for details.  Note that it is best to specify \code{cl} yourself,
-	so that is appropriate for your architecture, instead of using my defaults.  This also helps you avoid zombie clusters if the \code{dmr} is terminated early with \code{ctl-c}. }
+	so that is appropriate for your architecture, instead of using my defaults.  This also helps you avoid zombie clusters if the \code{dmr} is terminated early with \code{ctl-c}.  In addition, if you run into memory issues with \code{type="FORK"} try \code{type="PSOCK"} instead. }
 \item{select}{For \code{coef.dmr}, this is the index of the 
 regularization paths from which you want estimates.  Can either be a single value for all categories or a vector of values, one for each category.  If left \code{NULL} the coefficients are selected via an information criteria according to the argument \code{k}.}
 \item{k}{For model selection when \code{select=NULL}, the information criteria penalty on degrees of freedom.  \code{k=2} is the AIC, \code{k=log(n)} is the BIC. }
