@@ -9,7 +9,6 @@ setClass("dmrcoef",
 onerun <- function(xj){
   fit <- do.call(gamlr,c(list(y=xj),argl))
   ## print works only if you've specified an outfile in makeCluster
-  print(memory.profile())
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
   return(fit)
 }
@@ -44,28 +43,31 @@ dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL, ...)
   argl$x <- chk$v
   argl$fix <- chk$mu
   nobs <- sum(chk$nbin)
-
-  ## convert counts to list
-  rownames(chk$counts) <- NULL
-  if(ncol(chk$counts) > 24 | nrow(chk$counts) > 1e3)
-  { chunks <- unique(round(seq.int(0,ncol(chk$counts),length.out=length(cl)+1)))
-    cblock <- lapply(1:(length(chunks)-1), 
-      function(i) chk$counts[,(chunks[i]+1):chunks[i+1]])
-    counts <- unlist(parLapply(cl, cblock, 
-      function(x) sapply(colnames(x), function(j) x[,j,drop=FALSE])),
-      recursive=FALSE)
-  } else{ counts <- sapply(colnames(chk$counts), function(j) chk$counts[,j,drop=FALSE]) }
-  if(argl$verb) 
-    cat(sprintf("split counts into a list of %d vectors.\n",length(counts)))
-
-  rm(chk,covars,mu) # quick clean
-  ## run in parallel
   clusterExport(cl,"argl",envir=environment())
-  mods <- parLapply(cl,counts,onerun)
-  if(stopcl) stopCluster(cl)
 
-  ## align names (probably unnecessary)
-  mods <- mods[names(counts)]
+  ## calculate size of serial chunks
+  rownames(chk$counts) <- NULL
+  p <- ncol(chk$counts)
+  C <- length(cl)
+  if(p>(4*C)) C <- floor(p/2*length(cl))
+  else C <- 1
+  if(argl$verb) 
+    cat(sprintf("working through response in %d chunks.\n",C))
+
+  ## loop through them
+  chunks <- round(seq(0,p,length.out=C+1))
+  vars <- colnames(chk$counts)
+  mods <- list()
+  for(i in 1:C){
+    if(argl$verb) cat(sprintf("%d, ",i))
+    counts <- sapply(
+      vars[(chunks[i]+1):chunks[i+1]], 
+      function(j) chk$counts[,j,drop=FALSE])
+    mods <- c(mods,parLapply(cl,counts,onerun))
+  }
+  if(argl$verb) cat("done.\n")
+  mods <- mods[vars] # prolly unnecesary
+  if(stopcl) stopCluster(cl)
 
   ## classy exit
   class(mods) <- "dmr"
