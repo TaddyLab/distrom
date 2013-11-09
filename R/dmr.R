@@ -6,15 +6,16 @@ setClass("dmrcoef",
   contains="dgCMatrix")
 
 ## inner loop function
-onerun <- function(xj){
-  fit <- do.call(gamlr,c(list(y=xj),argl))
+onerun <- function(xj,argl){
+  argl$y <- xj
+  fit <- do.call(gamlr,argl)
   ## print works only if you've specified an outfile in makeCluster
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
   return(fit)
 }
 
 ## main function
-dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL, ...)
+dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
 {
   #build the default argument list
   argl <- list(...)
@@ -22,53 +23,53 @@ dmr <- function(covars, counts, mu=NULL, bins=NULL, cl=NULL, ...)
     argl$family="poisson"
   if(is.null(argl$nlambda))
     argl$nlambda <- formals(gamlr)$nlambda
-  if(is.null(argl$verb))
-    argl$verb <- FALSE
-
-  ## start cluster
-  stopcl = FALSE
-  if(is.null(cl)){
-    cl <- makeCluster(detectCores(), 
-                    type=ifelse(
-                      .Platform$OS.type=="unix",
-                      "FORK","PSOCK"))
-    stopcl = TRUE
-  } 
-  if(argl$verb) print(cl)
+  argl$verb <- max(verb-1,0)
 
   ## collapse and clean
   chk <- collapse(covars, counts, mu, bins)
-  cat(sprintf("fitting %d observations on %d categories, %d covariates.\n",
+  if(verb)
+    cat(sprintf("fitting %d observations on %d categories, %d covariates.\n",
         nrow(chk$v), ncol(chk$counts), ncol(chk$v)))
   argl$x <- chk$v
   argl$fix <- chk$mu
   nobs <- sum(chk$nbin)
-  clusterExport(cl,"argl",envir=environment())
-
-  ## calculate size of serial chunks
   rownames(chk$counts) <- NULL
   p <- ncol(chk$counts)
-  C <- length(cl)
-  if(p>(4*C)) C <- floor(p/2*length(cl))
-  else C <- 1
-  if(argl$verb) 
-    cat(sprintf("working through response in %d chunks.\n",C))
-
-  ## loop through them
-  chunks <- round(seq(0,p,length.out=C+1))
   vars <- colnames(chk$counts)
-  mods <- list()
-  for(i in 1:C){
-    if(argl$verb) cat(sprintf("%d, ",i))
-    counts <- sapply(
-      vars[(chunks[i]+1):chunks[i+1]], 
-      function(j) chk$counts[,j,drop=FALSE])
-    mods <- c(mods,parLapply(cl,counts,onerun))
-  }
-  if(argl$verb) cat("done.\n")
-  mods <- mods[vars] # prolly unnecesary
-  if(stopcl) stopCluster(cl)
 
+  ## lapply somehow, depending on cl and p
+  if(is.null(cl)){
+    if(verb) cat("running in serial.\n")
+    counts <- sapply(vars,
+        function(j) chk$counts[,j,drop=FALSE])
+    mods <- lapply(counts,onerun,argl=argl) 
+  }
+  else{
+    if(verb) print(cl)
+    C <- floor(p/max(500,length(cl)))
+    if(C>1){ ## loop through chunks
+      if(verb) 
+        cat(sprintf("distributed regression within %d chunks: ",C))
+      chunks <- round(seq(0,p,length.out=C+1))
+      mods <- list()
+      for(i in 1:C){
+        if(verb) cat(sprintf("%d, ",i))
+        counts <- sapply(
+          vars[(chunks[i]+1):chunks[i+1]], 
+          function(j) chk$counts[,j,drop=FALSE])
+        mods <- c(mods,parLapply(cl,counts,onerun,argl=argl))
+      }
+      if(verb) cat("done.\n")
+    } 
+    else{ 
+      if(verb) 
+        cat("distributed regression over all count categories.\n")
+      counts <- sapply(vars,
+        function(j) chk$counts[,j,drop=FALSE])
+      mods <- parLapply(cl,counts,onerun,argl=argl) 
+    }
+  }
+    
   ## classy exit
   class(mods) <- "dmr"
   attr(mods,"nobs") <- nobs

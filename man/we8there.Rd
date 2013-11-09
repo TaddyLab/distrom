@@ -36,8 +36,10 @@ Matt Taddy, \email{taddy@chicagobooth.edu}
 data(we8there)
 
 ## regress counts onto 5-star overall rating
-fits <- dmr(we8thereRatings[,'Overall',drop=FALSE], 
-			we8thereCounts, bins=3, gamma=1, verb=TRUE)
+cl <- makePSOCKcluster(detectCores())
+fits <- dmr(cl, we8thereRatings[,'Overall',drop=FALSE], 
+			we8thereCounts, bins=4, gamma=1, verb=TRUE)
+stopCluster(cl)
 
 ## plot fits for a few individual terms
 terms <- c("first date","chicken wing",

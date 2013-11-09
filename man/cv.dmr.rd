@@ -6,15 +6,16 @@
 \title{OOS experiments for distributed multinomial regression}
 \description{OOS experiments for a multinomial logistic regression factorized into independent penalized Poisson log regressions.}
 \usage{
-cv.dmr(covars, counts, 
+cv.dmr(cl, covars, counts, 
     mu=NULL, lambda.start=NULL, 
     nfold=5, foldid=NULL,
-    verb=TRUE, cl=NULL, savek=FALSE, ...)
+    verb=1, savek=FALSE, ...)
 \method{logLik}{cv.dmr}(object, ...)
 \method{coef}{cv.dmr}(object, select=c("1se","min"), ...)
 \method{plot}{cv.dmr}(x, ...)
 }
 \arguments{
+\item{cl}{ A \code{parallel} library socket cluster; see details of the same argument for the \code{dmr} function. }
 \item{covars}{A dense \code{matrix} 
       or sparse \code{Matrix} of covariates.
       This should not include the intercept.}
@@ -25,8 +26,9 @@ cv.dmr(covars, counts,
 \item{lambda.start}{Where to start each regularization path.  If \code{NULL} it uses the maximum absolute gradient across all category (i.e. the smallest \eqn{\lambda} such that all coefficients are set to zero). }
 \item{nfold}{ The number of cross validation folds. }
 \item{foldid}{ An optional length-n vector of fold memberships for each observation.  If specified, this dictates \code{nfold}.}
-\item{verb}{ Whether to print progress through folds. }
-\item{cl}{ A \code{parallel} library socket cluster; see details of the same argument for the \code{dmr} function. }
+\item{verb}{ Whether to print progress through folds.
+ \code{max(0,verb-1)} is passed
+on to dmr. }
 \item{savek}{ Whether to save each fold 'k' dmr fit.}
 \item{...}{ Arguments to \code{dmr}. }
 \item{select}{ In prediction and coefficient extraction, 
@@ -39,7 +41,8 @@ cv.dmr(covars, counts,
 }
 \details{ Fits a \code{dmr} regression to the full dataset, and then performs \code{nfold} 
 cross validation to evaluate out-of-sample (OOS)
-multinomial deviance under different penalty weights.  
+multinomial deviance under different penalty weights.  Be aware: this requires
+much extra communication across response categories; for big datasets use \code{dmr} with AIC or BIC.
 
 Model selection
 here is grouped: the same \eqn{\lambda} is assumed for each response category.  This
@@ -82,7 +85,9 @@ independent Poissons used in \code{logLik.dmr}).
 \examples{
 library(MASS)
 data(fgl)
-fits <- cv.dmr(fgl[,1:9], fgl$type)
+## just fit in serial this time
+fits <- cv.dmr(cl=NULL, fgl[,1:9], fgl$type)
+
 plot(fits)
 abline(v=log(fits$lambda[which.min(AIC(fits))]), 
 		col="darkorange", lty=3)

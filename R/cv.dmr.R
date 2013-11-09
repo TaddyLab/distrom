@@ -10,10 +10,10 @@ mndev <- function(s, counts, m, v, f){
 }
 
 ## outer R loop that calls dmr
-cv.dmr <- function(covars, counts, 
+cv.dmr <- function(cl, covars, counts, 
                   mu=NULL, lambda.start=NULL,
                   nfold=5, foldid=NULL, 
-                  verb=TRUE, cl=NULL, savek=FALSE, ...){
+                  verb=1, savek=FALSE, ...){
   
   ## basic input checking
   chk <- collapse(covars,counts,mu=mu)
@@ -42,20 +42,11 @@ cv.dmr <- function(covars, counts,
     lambda.start <- max(g0) 
   }
 
-  ## parallel setup
-  stopcl = FALSE
-  if(is.null(cl)){
-    cl <- makeCluster(min(detectCores(),ncol(counts)),
-                    type=ifelse(
-                      .Platform$OS.type=="unix",
-                      "FORK","PSOCK"))
-    stopcl = TRUE
-  }
-  if(verb) print(cl)
-
   ## full fit and properties
   if(verb) cat("full model fit, ")
-  full <- dmr(v, counts, mu=mu, lambda.start=lambda.start, cl=cl, ...)
+  full <- dmr(cl, v, counts, mu=mu, 
+            lambda.start=lambda.start, 
+            verb=max(verb-1,0), ...)
 
   ## get lambda
   lambda <- sort(
@@ -64,7 +55,10 @@ cv.dmr <- function(covars, counts,
   nlambda <- length(lambda)
 
   #### get full model MN deviance and df
-  dev <- parSapply(cl,1:nlambda,mndev,counts,m,v,full)  
+  if(!is.null(cl))
+    dev <- parSapply(cl,1:nlambda,mndev,counts,m,v,full)  
+  else 
+    dev <- sapply(1:nlambda,mndev,counts,m,v,full)
   names(dev) <- paste("seg",1:nlambda,sep=".")
   df <- sapply(full, 
           function(f) c(f$df,rep(NA,nlambda-length(f$df))))
@@ -92,12 +86,20 @@ cv.dmr <- function(covars, counts,
   for(k in levels(foldid)){
     train <- which(foldid!=k)
     if(!is.null(mut)) mut <- mu[train]
-    fit <- dmr(v[train,,drop=FALSE], counts[train,], mu=mut,
-            lambda.start=lambda.start, cl=cl, ...)
+    fit <- dmr(cl, v[train,,drop=FALSE], counts[train,], mu=mut,
+            lambda.start=lambda.start, verb=max(verb-1,0), ...)
     if(savek) kfit[[k]] <- fit
-    oos[k,] <- parSapply(cl,
+    if(!is.null(cl))
+      oos[k,] <- parSapply(cl,
                 1:nlambda,mndev,
-                counts=counts[-train,],m=m[-train],v=v[-train,,drop=FALSE],f=fit)
+                counts=counts[-train,],
+                m=m[-train],v=v[-train,,drop=FALSE],f=fit)
+    else 
+      oos[k,] <- sapply(
+                1:nlambda,mndev,
+                counts=counts[-train,],
+                m=m[-train],v=v[-train,,drop=FALSE],f=fit)
+
     if(verb) cat(sprintf("%s,",k))
   }
   
@@ -108,8 +110,6 @@ cv.dmr <- function(covars, counts,
   cv1se <- (cvm[seg.min]+cvs[seg.min])-cvm
   seg.1se <- min((1:length(cvm))[cv1se>=0])
   lambda.1se = lambda[seg.1se]
-
-  if(stopcl) stopCluster(cl)
 
   if(verb) cat("done.\n")
   out <- list(dmr=full,

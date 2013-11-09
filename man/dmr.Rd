@@ -6,13 +6,16 @@
 \title{Distributed Multinomial Regression}
 \description{Gamma-lasso path estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.}
 \usage{
-dmr(covars, counts, mu=NULL, bins=NULL, cl=NULL, ...)
+dmr(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
 \method{logLik}{dmr}(object, ...)
 \method{coef}{dmr}(object, select=NULL, k=2, ...)
 \method{predict}{dmr}(object, newdata,
 	type=c("link","response","class","reduction"), ...)
 }
 \arguments{
+\item{cl}{A \code{parallel} library socket cluster.  If \code{is.null(cl)},
+ everything is done in serial.  See
+	\code{help(parallel)}, \code{help(makeCluster)}, and our examples here for details. }
 \item{covars}{A dense \code{matrix} 
       or sparse \code{Matrix} of covariates.
       This should not include the intercept.}
@@ -24,13 +27,8 @@ dmr(covars, counts, mu=NULL, bins=NULL, cl=NULL, ...)
 \item{bins}{Number of bins into which we will attempt to collapse each column of \code{covars}.  Since sums of multinomials 
 with equal probabilities are also multinomial, the model is then fit to these collapsed `observations'. \code{bins=NULL}
  does no collapsing. }
-\item{cl}{A \code{parallel} library socket cluster.  If \code{is.null(cl)},
- a cluster is initialized with 
- \code{makeCluster(min(detectCores(),ncol(x)),}
-	\code{type=ifelse(} \code{.Platform$OS.type} \code{=="unix","FORK","PSOCK"))} 
-	and stopped via \code{stopCluster(cl)} upon exit.  See
-	\code{help(parallel)} for details.  Note that it is best to specify \code{cl} yourself,
-	so that is appropriate for your architecture, instead of using my defaults.  This also helps you avoid zombie clusters if the \code{dmr} is terminated early with \code{ctl-c}.  In addition, if you run into memory issues with \code{type="FORK"} try \code{type="PSOCK"} instead. }
+\item{verb}{Whether to print some info.  \code{max(0,verb-1)} is passed
+on to gamlr and will print if you created an \code{outfile} when specifying \code{cl}.  }
 \item{select}{For \code{coef.dmr}, this is the index of the 
 regularization paths from which you want estimates.  Can either be a single value for all categories or a vector of values, one for each category.  If left \code{NULL} the coefficients are selected via an information criteria according to the argument \code{k}.}
 \item{k}{For model selection when \code{select=NULL}, the information criteria penalty on degrees of freedom.  \code{k=2} is the AIC, \code{k=log(n)} is the BIC. }
@@ -67,7 +65,17 @@ Taddy (2013) Multinomial Inverse Regression for Text Analysis, with discussion a
 library(MASS)
 data(fgl)
 
-fits <- dmr(fgl[,1:9], fgl$type)
+## make your cluster 
+## FORK is faster but memory heavy, and doesn't work on windows.
+cl <- makeCluster(min(detectCores(),6),
+		type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK")) 
+print(cl)
+
+## fit in parallel
+fits <- dmr(cl, fgl[,1:9], fgl$type, verb=1)
+
+## its good practice stop the cluster once you're done
+stopCluster(cl)
 
 ## Individual Poisson model fits and IC selection
 par(mfrow=c(3,2))
