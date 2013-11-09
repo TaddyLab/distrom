@@ -7,7 +7,7 @@ setClass("dmrcoef",
 
 ## inner loop function
 onerun <- function(xj){
-  fit <- do.call(gamlr,list(y=xj,argl))
+  fit <- do.call(gamlr,c(list(y=xj),argl))
   ## print works only if you've specified an outfile in makeCluster
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
   return(fit)
@@ -32,9 +32,12 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
   argl$x <- chk$v
   argl$fix <- chk$mu
   nobs <- sum(chk$nbin)
-  rownames(chk$counts) <- NULL
   p <- ncol(chk$counts)
   vars <- colnames(chk$counts)
+  ## cleanup
+  chk$v <- chk$mu <- NULL
+  rownames(argl$x) <- rownames(chk$counts) <- NULL
+  rm(covars,mu,counts)
 
   ## lapply somehow, depending on cl and p
   if(is.null(cl)){
@@ -47,7 +50,8 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
   }
   else{
     if(verb) print(cl)
-    clusterExport(cl,"argl")
+    print(object.size(argl),u="Mb")
+    clusterExport(cl,"argl",envir=environment())
     C <- floor(p/max(500,length(cl)))
     if(C>1){ ## loop through chunks
       if(verb) 
