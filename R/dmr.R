@@ -6,9 +6,8 @@ setClass("dmrcoef",
   contains="dgCMatrix")
 
 ## inner loop function
-onerun <- function(xj,argl){
-  argl$y <- xj
-  fit <- do.call(gamlr,argl)
+onerun <- function(xj){
+  fit <- do.call(gamlr,list(y=xj,argl))
   ## print works only if you've specified an outfile in makeCluster
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
   return(fit)
@@ -42,10 +41,13 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
     if(verb) cat("running in serial.\n")
     counts <- sapply(vars,
         function(j) chk$counts[,j,drop=FALSE])
-    mods <- lapply(counts,onerun,argl=argl) 
+    environment(onerun) <- e <- new.env()
+    e$argl <- argl
+    mods <- lapply(counts,onerun) 
   }
   else{
     if(verb) print(cl)
+    clusterExport(cl,"argl")
     C <- floor(p/max(500,length(cl)))
     if(C>1){ ## loop through chunks
       if(verb) 
@@ -57,7 +59,7 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
         counts <- sapply(
           vars[(chunks[i]+1):chunks[i+1]], 
           function(j) chk$counts[,j,drop=FALSE])
-        mods <- c(mods,parLapply(cl,counts,onerun,argl=argl))
+        mods <- c(mods,parLapply(cl,counts,onerun))
       }
       if(verb) cat("done.\n")
     } 
@@ -66,7 +68,7 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
         cat("distributed regression over all count categories.\n")
       counts <- sapply(vars,
         function(j) chk$counts[,j,drop=FALSE])
-      mods <- parLapply(cl,counts,onerun,argl=argl) 
+      mods <- parLapply(cl,counts,onerun) 
     }
   }
     
