@@ -6,8 +6,9 @@ setClass("dmrcoef",
   contains="dgCMatrix")
 
 ## inner loop function
-onerun <- function(xj){
-  fit <- do.call(gamlr,c(list(y=xj),argl))
+onerun <- function(xj, argl){
+  argl$y <- xj
+  fit <- do.call(gamlr,argl)
   ## print works only if you've specified an outfile in makeCluster
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
   return(fit)
@@ -35,46 +36,38 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
   p <- ncol(chk$counts)
   vars <- colnames(chk$counts)
   ## cleanup
-  chk$v <- chk$mu <- NULL
   rownames(argl$x) <- rownames(chk$counts) <- NULL
-  rm(covars,mu,counts)
+  counts <- chk$counts
+  rm(covars,mu,chk)
+
+  ## convert X to list
+  if(verb) cat("converting counts matrix to column list...\n")
+  C <- ifelse(is.null(cl),Inf,length(cl))
+  if(C < p/4){
+    chunks <- round(seq(0,p,length.out=C+1))
+    counts <- lapply(1:C, 
+      function(i) counts[,(chunks[i]+1):chunks[i+1]])
+    counts <- parLapply(cl,
+                counts, 
+                function(x) 
+                  sapply(colnames(x), 
+                  function(j) x[,j,drop=FALSE]))
+    counts <- unlist(counts,recursive=FALSE)
+  } else{
+    counts <- sapply(vars,
+      function(j) counts[,j,drop=FALSE]) }
 
   ## lapply somehow, depending on cl and p
   if(is.null(cl)){
-    if(verb) cat("running in serial.\n")
-    counts <- sapply(vars,
-        function(j) chk$counts[,j,drop=FALSE])
-    environment(onerun) <- e <- new.env()
-    e$argl <- argl
-    mods <- lapply(counts,onerun) 
+    if(verb) cat("running in serial... ")
+    mods <- lapply(counts,onerun,argl) 
   }
   else{
     if(verb) print(cl)
-    print(object.size(argl),u="Mb")
-    clusterExport(cl,"argl",envir=environment())
-    C <- floor(p/max(500,length(cl)))
-    if(C>1){ ## loop through chunks
-      if(verb) 
-        cat(sprintf("distributed regression within %d chunks: ",C))
-      chunks <- round(seq(0,p,length.out=C+1))
-      mods <- list()
-      for(i in 1:C){
-        if(verb) cat(sprintf("%d, ",i))
-        counts <- sapply(
-          vars[(chunks[i]+1):chunks[i+1]], 
-          function(j) chk$counts[,j,drop=FALSE])
-        mods <- c(mods,parLapply(cl,counts,onerun))
-      }
-      if(verb) cat("done.\n")
-    } 
-    else{ 
-      if(verb) 
-        cat("distributed regression over all count categories.\n")
-      counts <- sapply(vars,
-        function(j) chk$counts[,j,drop=FALSE])
-      mods <- parLapply(cl,counts,onerun) 
-    }
+    if(verb) cat("distributed run... ")
+    mods <- parLapply(cl,counts,onerun,argl) 
   }
+  if(verb) cat("done.\n")
     
   ## classy exit
   class(mods) <- "dmr"
