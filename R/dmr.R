@@ -10,6 +10,7 @@ onerun <- function(xj, argl){
   argl$y <- xj
   fit <- do.call(gamlr,argl)
   ## print works only if you've specified an outfile in makeCluster
+  print(object.size(argl),u="Mb")
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
   return(fit)
 }
@@ -63,8 +64,9 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
     mods <- lapply(counts,onerun,argl) 
   }
   else{
-    if(verb) print(cl)
-    if(verb) cat("distributed run... ")
+    if(verb){ 
+      print(cl)
+      cat("distributed run... ") }
     mods <- parLapply(cl,counts,onerun,argl) 
   }
   if(verb) cat("done.\n")
