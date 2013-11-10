@@ -10,7 +10,6 @@ onerun <- function(xj, argl){
   argl$y <- xj
   fit <- do.call(gamlr,argl)
   ## print works only if you've specified an outfile in makeCluster
-  print(object.size(argl),u="Mb")
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
   return(fit)
 }
@@ -134,7 +133,6 @@ predict.dmrcoef <- function(object, newdata,
 {
   if(is.vector(newdata)){ newdata <- matrix(newdata, nrow=1) }
   if(is.data.frame(newdata)){ newdata <- as.matrix(newdata) }
-
 
   type=match.arg(type)
   if(type=="reduction"){
