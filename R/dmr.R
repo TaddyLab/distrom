@@ -65,8 +65,8 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
   }
   else{
     if(verb){ 
-      print(cl)
-      cat("distributed run... ") }
+     cat("distributed run... ") 
+     print(cl)}
     mods <- parLapply(cl,counts,onerun,argl) 
   }
   if(verb) cat("done.\n")
