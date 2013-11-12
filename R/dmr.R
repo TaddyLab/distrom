@@ -7,7 +7,13 @@ setClass("dmrcoef",
 
 ## inner loop function
 onerun <- function(xj, argl){
-  argl$y <- xj
+  if(argl$family=="gaussian"){
+    argl$x <- argl$x[xj@i+1,]
+    argl$obsweights <- xj@x
+    argl$y <- log(xj@x) - argl$fix[xj@i+1]
+    argl$fix <- NULL
+  }
+  else{ argl$y <- xj }
   fit <- do.call(gamlr,argl)
   ## print works only if you've specified an outfile in makeCluster
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
