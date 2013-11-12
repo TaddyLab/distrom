@@ -15,6 +15,7 @@ onerun <- function(xj, argl){
   }
   else{ argl$y <- xj }
   fit <- do.call(gamlr,argl)
+  fit$call <- NULL # will be unnecessary from gamlr 1.11-2
   ## print works only if you've specified an outfile in makeCluster
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
   return(fit)
@@ -65,16 +66,15 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
 
   ## lapply somehow, depending on cl and p
   if(is.null(cl)){
-    if(verb) cat("running in serial... ")
+    if(verb) cat("running in serial. ")
     mods <- lapply(counts,onerun,argl) 
   }
   else{
     if(verb){ 
-      print(cl)
-      cat("distributed run... ") }
+     cat("distributed run. ") 
+     print(cl)}
     mods <- parLapply(cl,counts,onerun,argl) 
   }
-  if(verb) cat("done.\n")
     
   ## classy exit
   class(mods) <- "dmr"
