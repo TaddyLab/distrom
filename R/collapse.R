@@ -1,4 +1,3 @@
-  
 #####  argument checking and binning #####
 
 collapse <- function(v,counts,mu=NULL,bins=NULL){
@@ -33,9 +32,14 @@ collapse <- function(v,counts,mu=NULL,bins=NULL){
 
   ## uncollapsed exit
   if(is.null(bins)){
-    if(is.null(mu)) mu <- getmu(rowSums(counts),p)
+    m <- rowSums(counts)
+    mnz <- which(m>0)
+    n <- length(mnz)
+    if(is.null(mu)) mu <- log(m[mnz])
     if(length(mu)==1) mu <- rep(mu,n)
-    return(list(v=v,counts=counts,nbin=rep(1,n),mu=mu))
+    return(list(v=v[mnz,,drop=FALSE],
+              counts=counts[mnz,],
+              nbin=rep(1,n),mu=mu))
   }
 
   ## binning
@@ -57,11 +61,10 @@ collapse <- function(v,counts,mu=NULL,bins=NULL){
     dims=c(nlevels(I),p),
     dimnames=list(levels(I),colnames(counts)))
   if(!is.null(mu)) warning("pre-specified mu is ignored after binning.")
-  mu <- getmu(rowSums(counts),p)
+  mu <- log(rowSums(counts)) # binning should remove any zero rowSums
 
   return(list(v=v,counts=counts,nbin=nbin,mu=mu))
 
 }
 
-getmu <- function(m,p){ suppressWarnings(log(m+1)) }
 

@@ -23,7 +23,7 @@ dmr(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
       or sparse \code{Matrix} of
       response counts. }
 \item{mu}{
-	Pre-specified fixed effects for each observation in the Poisson regression linear equation.  If \code{mu=NULL}, then this is fixed as \code{log(rowMeans(x)+1)}.  Note that if \code{bins} is non-null then this argument is ignored and \code{mu} is recalculated on the collapsed data.}
+	Pre-specified fixed effects for each observation in the Poisson regression linear equation.  If \code{mu=NULL}, then we use \code{log(rowSums(x))}.  Note that if \code{bins} is non-null then this argument is ignored and \code{mu} is recalculated on the collapsed data.}
 \item{bins}{Number of bins into which we will attempt to collapse each column of \code{covars}.  Since sums of multinomials 
 with equal probabilities are also multinomial, the model is then fit to these collapsed `observations'. \code{bins=NULL}
  does no collapsing. }
@@ -44,7 +44,7 @@ For \code{predict.dmr}, this is the scale upon which you want prediction. Under 
 	\deqn{
 	x_{ij} \sim Po(exp[\mu_i + \alpha_j + \beta v_i ]).
 	}
-	We [default] plug-in estimate \eqn{\hat\mu_i = log(m_i/p +1)}, where \eqn{m_i = \sum_j x_{ij}} and \eqn{p} is the dimension of \eqn{x_i}.  Then each individual is outsourced to Poisson regression in the \code{gamlr} package via the \code{parLapply} function of the \code{parallel} library.  The output from \code{dmr} is a list of \code{gamlr} fitted models.
+	We [default] plug-in estimate \eqn{\hat\mu_i = log(m_i)}, where \eqn{m_i = \sum_j x_{ij}} and \eqn{p} is the dimension of \eqn{x_i}.  Then each individual is outsourced to Poisson regression in the \code{gamlr} package via the \code{parLapply} function of the \code{parallel} library.  The output from \code{dmr} is a list of \code{gamlr} fitted models.
 
 	\code{coef.dmr} builds a matrix of multinomial logistic regression coefficients from the \code{length(object)} list of \code{gamlr} fits. If the \code{select} index is not null, \code{coef.dmr} returns the corresponding coefficients.  More likely, selection uses an information criteria via \code{AIC}
 	on Poisson deviance for each individual response dimension. The complexity penalty is specified via argument \code{k}.  Combined coefficients across all dimensions are then returned as a \code{dmrcoef} s4-class object.

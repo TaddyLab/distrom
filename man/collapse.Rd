@@ -14,7 +14,7 @@
 	the observations into \code{bins}  defined by their average value.  Both \code{v} and \code{counts} are then collapsed according to levels of the interaction across implied bin-factors, and the number
 	of observations in each bin is recorded as \code{n}.  Look at the code of the \code{dmr} function to see \code{collapse} used in practice.
 }
-\value{A list containing collapsed and formatted \code{v}, \code{counts}, and \code{nbin}, along with \code{mu}, the plug-in fixed effect estimates for dmr (see \code{dmr:::getmu}).}
+\value{A list containing collapsed and formatted \code{v}, \code{counts}, and \code{nbin}, along with \code{mu = log(rowSums(counts))}, the plug-in fixed effect estimates for dmr.}
 \author{
   Matt Taddy \email{taddy@chicagobooth.edu}
 }
