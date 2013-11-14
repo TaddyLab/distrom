@@ -9,13 +9,13 @@ setClass("dmrcoef",
 onerun <- function(xj, argl){
   if(argl$family=="gaussian"){
     argl$x <- argl$x[xj@i+1,]
-    argl$obsweights <- xj@x
     argl$y <- log(xj@x) - argl$fix[xj@i+1]
-    argl$fix <- NULL
-  }
-  else{ argl$y <- xj }
+    argl$obsweight <- xj@x
+    #argl$y <- log(xj+1) - argl$fix
+    #argl$obsweight <- xj+1
+    #argl$fix <- NULL
+  } else{ argl$y <- xj }
   fit <- do.call(gamlr,argl)
-  fit$call <- NULL # will be unnecessary from gamlr 1.11-2
   ## print works only if you've specified an outfile in makeCluster
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
   return(fit)
@@ -66,14 +66,14 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
 
   ## lapply somehow, depending on cl and p
   if(is.null(cl)){
-    if(verb) cat("running in serial. ")
-    mods <- lapply(counts,onerun,argl) 
+    if(verb) cat("running in serial.\n ")
+    mods <- lapply(counts,onerun,argl=argl) 
   }
   else{
     if(verb){ 
-     cat("distributed run. ") 
-     print(cl)}
-    mods <- parLapply(cl,counts,onerun,argl) 
+     cat("distributed run.\n ") 
+     print(cl) }
+    mods <- parLapply(cl,counts,onerun,argl=argl) 
   }
     
   ## classy exit
