@@ -9,17 +9,25 @@ setClass("dmrcoef",
 linapprox <- function(xj, argl){
   if(!is.null(argl$buff))
     buff <- argl$buff 
-  else buff <- 1/2
-  argl$y <- log(xj+buff) - argl$fix
-  argl$obsweight <- xj[,1]+buff
+  else 
+    buff <- exp(-5)
+
+  if(buff>0){
+    argl$y <- log(xj+buff) - argl$fix
+    argl$obsweight <- xj[,1]+buff
+  } 
+  else{
+    argl$y <- log(xj@x) - argl$fix[xj@i+1]
+    argl$obsweight <- xj@x
+    argl$x <- argl$x[xj@i+1,,drop=FALSE]
+  }
 
   argl$fix <- NULL
-  argl$doxx <- as(as.matrix(
-    tcrossprod(t(argl$x*sqrt(argl$obsweight)))),
-    "dspMatrix")
+  argl$doxx <- TRUE
 
   fit <- do.call(gamlr,argl)
-  if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
+  if(length(fit$lambda)<argl$nlambda) 
+    print(colnames(xj))
 
   return(fit)
 }
