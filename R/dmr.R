@@ -5,16 +5,29 @@ setClass("dmrcoef",
   representation(lambda="numeric"), 
   contains="dgCMatrix")
 
-## inner loop function
+## inner loop function(s)
+linapprox <- function(xj, argl){
+  if(!is.null(argl$buff))
+    buff <- argl$buff 
+  else buff <- 1/2
+  argl$y <- log(xj+buff) - argl$fix
+  argl$obsweight <- xj[,1]+buff
+
+  argl$fix <- NULL
+  argl$doxx <- as(as.matrix(
+    tcrossprod(t(argl$x*sqrt(argl$obsweight)))),
+    "dspMatrix")
+
+  fit <- do.call(gamlr,argl)
+  if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
+
+  return(fit)
+}
+
 onerun <- function(xj, argl){
-  if(argl$family=="gaussian"){
-    argl$x <- argl$x[xj@i+1,]
-    argl$y <- log(xj@x) - argl$fix[xj@i+1]
-    argl$obsweight <- xj@x
-    #argl$y <- log(xj+1) - argl$fix
-    #argl$obsweight <- xj+1
-    #argl$fix <- NULL
-  } else{ argl$y <- xj }
+  if(argl$family=="gaussian")
+    return(linapprox(xj,argl))
+  argl$y <- xj
   fit <- do.call(gamlr,argl)
   ## print works only if you've specified an outfile in makeCluster
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))

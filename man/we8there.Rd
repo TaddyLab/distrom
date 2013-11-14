@@ -38,7 +38,7 @@ data(we8there)
 ## regress counts onto 5-star overall rating
 cl <- makePSOCKcluster(detectCores())
 fits <- dmr(cl, we8thereRatings[,'Overall',drop=FALSE], 
-			we8thereCounts, bins=4, gamma=1, verb=TRUE)
+			we8thereCounts, bins=6, gamma=1, verb=TRUE)
 stopCluster(cl)
 
 ## plot fits for a few individual terms
