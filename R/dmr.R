@@ -7,13 +7,14 @@ setClass("dmrcoef",
 
 ## inner loop function(s)
 linapprox <- function(xj, argl){
+  cat("linear approx\n")
   if(!is.null(argl$buff))
     buff <- argl$buff 
   else 
     buff <- exp(-5)
 
   if(buff>0){
-    argl$y <- log(xj+buff) - argl$fix
+    argl$y <- log(xj[,1]+buff) - argl$fix
     argl$obsweight <- xj[,1]+buff
   } 
   else{
@@ -92,7 +93,7 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
   }
   else{
     if(verb){ 
-     cat("distributed run.\n ") 
+     cat("distributed run.\n") 
      print(cl) }
     mods <- parLapply(cl,counts,onerun,argl=argl) 
   }

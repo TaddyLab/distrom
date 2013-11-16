@@ -32,14 +32,16 @@ collapse <- function(v,counts,mu=NULL,bins=NULL){
 
   ## uncollapsed exit
   if(is.null(bins)){
-    m <- rowSums(counts)
-    mnz <- which(m>0)
-    n <- length(mnz)
-    if(is.null(mu)) mu <- log(m[mnz])
+    if(is.null(mu)){
+      m <- rowSums(counts)
+      mnz <- which(m>0)
+      n <- length(mnz)
+      mu <- log(m[mnz])
+      v <- v[mnz,,drop=FALSE]
+      counts <- counts[mnz,]
+    }
     if(length(mu)==1) mu <- rep(mu,n)
-    return(list(v=v[mnz,,drop=FALSE],
-              counts=counts[mnz,],
-              nbin=rep(1,n),mu=mu))
+    return(list(v=v, counts=counts, nbin=rep(1,n),mu=mu))
   }
 
   ## binning
