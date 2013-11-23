@@ -3,12 +3,12 @@ Title: Distributed Multinomial Regression
 Version: 0.02    
 Date: 2013    
 Author: Matt Taddy <taddy@chicagobooth.edu>   
-Depends: R (>= 2.15), Matrix, gamlr, parallel, methods
-Suggests: MASS
+Depends: R (>= 2.15), Matrix, gamlr, parallel, methods      
+Suggests: MASS      
 Extends: gamlr     
 Description: Gamma-lasso path estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.  
 Maintainer: Matt Taddy <taddy@chicagobooth.edu>    
 License: GPL-3    
-URL: http://faculty.chicagobooth.edu/matt.taddy/index.html
-	http://github.com/mataddy/distrom       
+URL: http://faculty.chicagobooth.edu/matt.taddy/index.html       
+	http://github.com/mataddy/distrom           
 References: Taddy (2013) Distributed Multinomial Regression.
