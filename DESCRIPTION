@@ -10,5 +10,5 @@ Description: Gamma-lasso path estimation for a multinomial logistic regression f
 Maintainer: Matt Taddy <taddy@chicagobooth.edu>    
 License: GPL-3    
 URL: http://faculty.chicagobooth.edu/matt.taddy/index.html
-	 http://github.com/mataddy/distrom 
+	 http://github.com/mataddy/distrom   
 References: Taddy (2013) Distributed Multinomial Regression.
