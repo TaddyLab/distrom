@@ -1,0 +1,9 @@
+citHeader("To cite 'distrom' in publications use:")
+
+citEntry(entry="Article",
+         title = "Distributed Multinomial Regression",
+         author = personList(as.person("Matt Taddy")),
+         year = 2013,
+         journal = "arXiv:13",
+
+         textVersion = "Taddy, M. (2013), Distributed Multinomial Regression, arXiv:13")
