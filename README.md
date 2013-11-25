@@ -1,6 +1,4 @@
-# Readme.md
-
-** distrom **
+# distrom 
 
 This is an R package for distributed multinomial regression.  The main function is `dmr', which fits independent Poisson log regressions for each category in your multinomial response.  The associated paper is available at <http://faculty.chicagobooth.edu/matt.taddy/research>. 
 
