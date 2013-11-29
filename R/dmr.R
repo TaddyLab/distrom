@@ -159,6 +159,9 @@ predict.dmr <- function(object, newdata,
 predict.dmrcoef <- function(object, newdata, 
                   type=c("link","response","class","reduction"), ...)
 {
+  if(inherits(newdata,"simple_triplet_matrix"))
+    newdata <- sparseMatrix(i=newdata$i,j=newdata$j,x=newdata$v,
+      dims=dim(newdata),dimnames=dimnames(newdata))
   if(is.vector(newdata)){ newdata <- matrix(newdata, nrow=1) }
   if(is.data.frame(newdata)){ newdata <- as.matrix(newdata) }
 
