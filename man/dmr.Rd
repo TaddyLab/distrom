@@ -10,7 +10,7 @@ dmr(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
 \method{logLik}{dmr}(object, ...)
 \method{coef}{dmr}(object, select=NULL, k=2, ...)
 \method{predict}{dmr}(object, newdata,
-	type=c("link","response","class","reduction"), ...)
+	type=c("link","response","class"), ...)
 }
 \arguments{
 \item{cl}{A \code{parallel} library socket cluster.  If \code{is.null(cl)},
@@ -33,11 +33,10 @@ on to gamlr and will print if you created an \code{outfile} when specifying \cod
 regularization paths from which you want estimates.  Can either be a single value for all categories or a vector of values, one for each category.  If left \code{NULL} the coefficients are selected via an information criteria according to the argument \code{k}.}
 \item{k}{For model selection when \code{select=NULL}, the information criteria penalty on degrees of freedom.  \code{k=2} is the AIC, \code{k=log(n)} is the BIC. }
 \item{type}{
-For \code{predict.dmr}, this is the scale upon which you want prediction. Under "link", just the linear map \code{newdata} times \code{object}, under "response" the fitted multinomial probabilities, under "class" the max-probability class label, and under "reduction" the MNIR sufficient reduction \eqn{X\phi/m}, plus an extra column \eqn{m} containing row totals of \eqn{X}.}
-\item{newdata}{A Matrix with the same number of columns as \code{covars}, unless
-\code{type="reduction"} in which case \code{newdata} is multinomial category count data with the same number of columns as \code{counts}.}
+For \code{predict.dmr}, this is the scale upon which you want prediction. Under "link", just the linear map \code{newdata} times \code{object}, under "response" the fitted multinomial probabilities, under "class" the max-probability class label.  For sufficient reductions see the \code{srproj} function of the textir library.}
+\item{newdata}{A Matrix with the same number of columns as \code{covars}.}
 \item{...}{Additional arguments to \code{gamlr} from \code{dmr} or to \code{coef.dmr} from \code{predict.dmr}.  For \code{dmr}, this can include \code{family="gaussian"}, in which case we fit the weighted least squares approximation from Appendix A of Taddy (2013) DMR.  This option is experimental and will only work with the latest gamlr.}
-\item{object}{A \code{dmr} list of fitted \code{gamlr} models for each response category. This is experimental and only works with the latest versions of \code{gamlr}.}
+\item{object}{A \code{dmr} list of fitted \code{gamlr} models for each response category. }
 }
 \details{
 	\code{dmr} fits multinomial logistic regression by assuming that, unconditionally on the `size' (total count across categories) each individual category count has been generated as a Poisson
@@ -95,5 +94,5 @@ boxplot(P[cbind(1:214,fgl$type)]~fgl$type,
 
 
 }
-\seealso{\code{dmrcoef-class}, \code{cv.dmr}, \code{AIC},  and the \code{gamlr} package.}
+\seealso{\code{dmrcoef-class}, \code{cv.dmr}, \code{AIC},  and the \code{gamlr} and \code{textir} packages.}
 

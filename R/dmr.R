@@ -151,13 +151,13 @@ logLik.dmr <- function(object, ...){
 
 ## method predict functions
 predict.dmr <- function(object, newdata, 
-                    type=c("link","response","class","reduction"), ...){
+                    type=c("link","response","class"), ...){
   B <- coef(object, ...)
   predict(B,newdata=newdata,type=type)
 }
 
 predict.dmrcoef <- function(object, newdata, 
-                  type=c("link","response","class","reduction"), ...)
+                  type=c("link","response","class"), ...)
 {
   if(inherits(newdata,"simple_triplet_matrix"))
     newdata <- sparseMatrix(i=newdata$i,j=newdata$j,x=newdata$v,
@@ -165,24 +165,17 @@ predict.dmrcoef <- function(object, newdata,
   if(is.vector(newdata)){ newdata <- matrix(newdata, nrow=1) }
   if(is.data.frame(newdata)){ newdata <- as.matrix(newdata) }
 
+  if(type=="reduction")
+    stop("type `reduction' has been replaced by the `srproj' function in the textir library.")
   type=match.arg(type)
-  if(type=="reduction"){
-    m <- rowSums(newdata)
-    newdata <- newdata/(m + 1*(m==0))
-    z <- tcrossprod(newdata,object[-1,])
-    colnames(z) <- rownames(object)[-1]
-    rownames(z) <- rownames(newdata)
-    z <- as.matrix(z)
-    return(cbind(z,m=m))
-  }
-  else{
-    eta <- t(tcrossprod(t(object[-1,,drop=FALSE]),newdata) + object[1,])
-    if(type=="response"){
-      expeta <- exp(eta)
-      eta <- expeta/rowSums(expeta) }
-    rownames(eta) <- rownames(newdata)
-    colnames(eta) <- colnames(object)
-  }
+  
+  eta <- t(tcrossprod(t(object[-1,,drop=FALSE]),newdata) + object[1,])
+  if(type=="response"){
+    expeta <- exp(eta)
+    eta <- expeta/rowSums(expeta) }
+  rownames(eta) <- rownames(newdata)
+  colnames(eta) <- colnames(object)
+  
   if(type=="class"){
     c <- apply(eta,1,function(e) colnames(eta)[which.max(e)])
     return(c)
