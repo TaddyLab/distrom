@@ -24,7 +24,6 @@ linapprox <- function(xj, argl){
   }
 
   argl$fix <- NULL
-  argl$doxx <- TRUE
 
   fit <- do.call(gamlr,argl)
   if(length(fit$lambda)<argl$nlambda) 
