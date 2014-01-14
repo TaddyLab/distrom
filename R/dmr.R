@@ -109,7 +109,7 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
 coef.dmr <- function(object, select=NULL, k=2, ...){
   ## model selection
   if(is.null(select)){
-    aic <- AIC(object,k=k)
+    aic <- AICc(object,k=k)
     select <- apply(aic, 2, which.min)
     select <- sapply(select, 
       function(s) ifelse(length(s)==0,1,s))
