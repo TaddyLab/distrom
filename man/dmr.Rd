@@ -66,8 +66,7 @@ data(fgl)
 
 ## make your cluster 
 ## FORK is faster but memory heavy, and doesn't work on windows.
-cl <- makeCluster(min(detectCores(),6),
-		type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK")) 
+cl <- makeCluster(2,type=ifelse(.Platform$OS.type=="unix","FORK","PSOCK")) 
 print(cl)
 
 ## fit in parallel
