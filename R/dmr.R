@@ -123,7 +123,7 @@ coef.dmr <- function(object, select=NULL, k=2, ...){
         object, select)
  
    ## set class and double check correct naming
-  B <- as(as(B[,names(object)],"dgCMatrix"),"dmrcoef")
+  B <- as(as(B[,names(object),drop=FALSE],"dgCMatrix"),"dmrcoef")
   rownames(B) <- c("intercept",rownames(object[[1]]$b))
   B@lambda <- mapply(
     function(f,s) 
