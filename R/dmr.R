@@ -45,6 +45,9 @@ onerun <- function(xj, argl){
 ## main function
 dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
 {
+  if(!is.null(cl)){
+    if(!inherits(cl,"cluster")) stop("first argument `cl' must be NULL or a socket cluster.")
+  }
   #build the default argument list
   argl <- list(...)
   if(is.null(argl$family))
