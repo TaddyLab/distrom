@@ -89,10 +89,6 @@ data(fgl)
 fits <- cv.dmr(cl=NULL, fgl[,1:9], fgl$type)
 
 plot(fits)
-abline(v=log(fits$lambda[which.min(AIC(fits))]), 
-		col="darkorange", lty=3)
-abline(v=log(fits$lambda[which.min(BIC(fits))]), 
-		col="darkorange", lty=3)
 }
 \seealso{dmr}
 

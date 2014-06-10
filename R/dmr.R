@@ -7,22 +7,11 @@ setClass("dmrcoef",
 
 ## inner loop function(s)
 linapprox <- function(xj, argl){
-  if(!is.null(argl$zeta))
-    zeta <- argl$zeta 
-  else 
-    zeta <- 0.05
-  cat(sprintf("linear approx with zeta = %g\n",zeta))
-
-  if(zeta>0){
-    argl$y <- log(xj[,1]+zeta) - argl$fix
-    argl$obsweight <- xj[,1]+zeta
-  } 
-  else{
-    argl$y <- log(xj@x) - argl$fix[xj@i+1]
-    argl$obsweight <- xj@x
-    argl$x <- argl$x[xj@i+1,,drop=FALSE]
-  }
-
+  w <- xj[,1]
+  nzm <- mean(w>0)
+  w[w==0] <- nzm^2
+  argl$y <- log(w) - argl$fix
+  argl$obsweight <- w
   argl$fix <- NULL
 
   fit <- do.call(gamlr,argl)
