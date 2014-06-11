@@ -5,25 +5,37 @@ setClass("dmrcoef",
   representation(lambda="numeric"), 
   contains="dgCMatrix")
 
-## inner loop function(s)
-linapprox <- function(xj, argl){
-  w <- xj[,1]
-  nzm <- mean(w>0)
-  w[w==0] <- nzm^2
-  argl$y <- log(w) - argl$fix
-  argl$obsweight <- w
+## WLS approx to poisson
+linpois <- function(xj, argl){
+
+  ## initialize
+  argl$y <- xj[,1]
+  v <- argl$y
+  v[v==0] <- mean(v>0)
+  if(is.null(argl$xbar))
+    argl$xbar <- colMeans(argl$x)
+  fix <- argl$fix
   argl$fix <- NULL
 
-  fit <- do.call(gamlr,argl)
-  if(length(fit$lambda)<argl$nlambda) 
-    print(colnames(xj))
+  argl$maxrw=0
+  argl$family="poisson"
+  argl$prexx=TRUE
+
+  for(t in 1:argl$linapprox){
+    argl$obsweight <- v
+    argl$z <- log(v) + argl$y/v - 1.0 - fix
+    fit <- do.call(gamlr,argl)
+    if( t<argl$linapprox )
+      v <- drop(predict(fit,argl$x,type="response"))
+  }
 
   return(fit)
 }
 
+## inner loop function
 onerun <- function(xj, argl){
-  if(argl$family=="gaussian")
-    return(linapprox(xj,argl))
+  if(argl$linapprox>0)
+    return(linpois(xj,argl))
   argl$y <- xj
   fit <- do.call(gamlr,argl)
   ## print works only if you've specified an outfile in makeCluster
@@ -41,6 +53,8 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
   argl <- list(...)
   if(is.null(argl$family))
     argl$family="poisson"
+  if(is.null(argl$linapprox))
+    argl$linapprox=0
   if(is.null(argl$nlambda))
     argl$nlambda <- formals(gamlr)$nlambda
   argl$verb <- max(verb-1,0)
