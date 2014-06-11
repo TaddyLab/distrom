@@ -9,32 +9,19 @@ setClass("dmrcoef",
 linpois <- function(xj, argl){
 
   ## initialize
-  argl$y <- xj[,1]
-  v <- argl$y
+  v <- y <- xj[,1]
   v[v==0] <- mean(v>0)
-  if(is.null(argl$xbar))
-    argl$xbar <- colMeans(argl$x)
-  fix <- argl$fix
-  argl$fix <- NULL
 
-  argl$maxrw=0
-  argl$family="poisson"
-  argl$prexx=TRUE
-
-  for(t in 1:argl$linapprox){
-    argl$obsweight <- v
-    argl$z <- log(v) + argl$y/v - 1.0 - fix
-    fit <- do.call(gamlr,argl)
-    if( t<argl$linapprox )
-      v <- drop(predict(fit,argl$x,type="response"))
-  }
+  argl$obsweight <- v
+  argl$y <- log(v) + y/v - 1.0 
+  fit <- do.call(gamlr,argl)
 
   return(fit)
 }
 
 ## inner loop function
 onerun <- function(xj, argl){
-  if(argl$linapprox>0)
+  if(argl$family=="gaussian")
     return(linpois(xj,argl))
   argl$y <- xj
   fit <- do.call(gamlr,argl)
@@ -53,8 +40,6 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
   argl <- list(...)
   if(is.null(argl$family))
     argl$family="poisson"
-  if(is.null(argl$linapprox))
-    argl$linapprox=0
   if(is.null(argl$nlambda))
     argl$nlambda <- formals(gamlr)$nlambda
   argl$verb <- max(verb-1,0)
