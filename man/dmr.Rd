@@ -1,5 +1,6 @@
 \name{dmr}
 \alias{dmr}
+\alias{distrom}
 \alias{logLik.dmr}
 \alias{predict.dmr}
 \alias{coef.dmr}
