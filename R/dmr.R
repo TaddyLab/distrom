@@ -1,39 +1,31 @@
 ##### Distributed Logistic Multinomial Regression  ######
 
 ## define class
-setClass("dmrcoef",
-  representation(lambda="numeric"), 
-  contains="dgCMatrix")
+setClass("dmrcoef", contains="dgCMatrix")
 
 ## inner loop function
 onerun <- function(xj, argl){
-  if(argl$family=="gaussian"){
-    v <- y <- xj[,1]
-    v[v==0] <- mean(v>0)
-    argl$obsweight <- v
-    argl$y <- log(v) + y/v - 1.0 
-  }
-  else{ argl$y <- xj }
-
-  fit <- do.call(gamlr,argl)
+  argl$y <- xj
+  if(argl$cv) fit <- do.call(cv.gamlr,argl)
+  else fit <- do.call(gamlr,argl)
   ## print works only if you've specified an outfile in makeCluster
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
   return(fit)
 }
 
 ## main function
-dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
+dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
 {
   if(!is.null(cl)){
     if(!inherits(cl,"cluster")) stop("first argument `cl' must be NULL or a socket cluster.")
   }
   #build the default argument list
   argl <- list(...)
-  if(is.null(argl$family))
-    argl$family="poisson"
+  argl$family="poisson"
   if(is.null(argl$nlambda))
     argl$nlambda <- formals(gamlr)$nlambda
   argl$verb <- max(verb-1,0)
+  argl$cv <- cv
 
   ## collapse and clean
   chk <- collapse(covars, counts, mu, bins)
@@ -87,53 +79,16 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, ...)
   return(mods)
 }
 
-coef.dmr <- function(object, select=NULL, k=2, ...){
-  ## model selection
-  if(is.null(select)){
-    if(exists("AICc")) aic <- AICc(object,k=k)
-    else aic <- AIC(object,k=k)
-    select <- apply(aic, 2, which.min)
-    select <- sapply(select, 
-      function(s) ifelse(length(s)==0,1,s))
-  }
-  
-  ## grab coef
-  B <- mapply( 
-        function(f,s){
-          s <- min(s,length(f$alpha))
-          c(f$alpha[s],f$beta[,s]) }, 
-        object, select)
- 
-   ## set class and double check correct naming
-  B <- as(as(B[,names(object),drop=FALSE],"dgCMatrix"),"dmrcoef")
-  rownames(B) <- c("intercept",rownames(object[[1]]$b))
-  B@lambda <- mapply(
-    function(f,s) 
-      ifelse(is.na(f$lambda[s]),f$lambda[which.min(f$lambda)],f$lambda[s]),
-    object, select)
-  
+coef.dmr <- function(object, ...){
+  B <- do.call(cBind, lapply(object,coef, ...))
+  colnames(B) <- names(object)
+  B <- as(as(B,"dgCMatrix"),"dmrcoef")
   return(B)
-}
-
-logLik.dmr <- function(object, ...){
-  dev <- sapply(object, function(fit) fit$dev)
-  df <- sapply(object, function(fit) fit$df)
-  if(!inherits(dev,"matrix")){
-      nl <- attributes(object)$nlambda
-      dev <- sapply(dev,function(a) c(a,rep(NA,nl-length(a))))
-      df <- sapply(df,function(a) c(a,rep(NA,nl-length(a))))
-    }
-
-  ll <- -0.5*dev
-  attr(ll,"nobs") = attributes(object)$nobs
-  attr(ll,"df") = df
-  class(ll) <- "logLik"
-  ll
 }
 
 ## method predict functions
 predict.dmr <- function(object, newdata, 
-                    type=c("link","response","class"), ...){
+                  type=c("link","response","class"), ...){
   B <- coef(object, ...)
   predict(B,newdata=newdata,type=type)
 }
