@@ -29,8 +29,8 @@ with equal probabilities are also multinomial, the model is then fit to these co
  does no collapsing. }
 \item{verb}{Whether to print some info.  \code{max(0,verb-1)} is passed
 on to gamlr and will print if you created an \code{outfile} when specifying \code{cl}.  }
-\item{select}{For \code{coef.dmr}, this is the index of the 
-regularization paths from which you want estimates.  Can either be a single value for all categories or a vector of values, one for each category.  If left \code{NULL} the coefficients are selected via an information criteria according to the argument \code{k}.}
+\item{select}{For \code{coef.dmr} and \code{cv=FALSE}, this is the index of the 
+regularization paths from which you want estimates.  Can either be a single value for all categories or a vector of values, one for each category.  If left \code{NULL} the coefficients are selected via an information criteria according to the argument \code{k}. If \code{cv=TRUE}, this can be either "1se" or "min"; see \code{cv.gamlr} for detail.}
 \item{k}{For model selection with corrected AICc, when \code{select=NULL}, the information criteria penalty on degrees of freedom (defaults to standard of 2). }
 \item{type}{
 For \code{predict.dmr}, this is the scale upon which you want prediction. Under "link", just the linear map \code{newdata} times \code{object}, under "response" the fitted multinomial probabilities, under "class" the max-probability class label.  For sufficient reductions see the \code{srproj} function of the textir library.}

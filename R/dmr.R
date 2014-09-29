@@ -5,25 +5,16 @@ setClass("dmrcoef",
   representation(lambda="numeric"), 
   contains="dgCMatrix")
 
-## WLS approx to poisson
-linpois <- function(xj, argl){
-
-  ## initialize
-  v <- y <- xj[,1]
-  v[v==0] <- mean(v>0)
-
-  argl$obsweight <- v
-  argl$y <- log(v) + y/v - 1.0 
-  fit <- do.call(gamlr,argl)
-
-  return(fit)
-}
-
 ## inner loop function
 onerun <- function(xj, argl){
-  if(argl$family=="gaussian")
-    return(linpois(xj,argl))
-  argl$y <- xj
+  if(argl$family=="gaussian"){
+    v <- y <- xj[,1]
+    v[v==0] <- mean(v>0)
+    argl$obsweight <- v
+    argl$y <- log(v) + y/v - 1.0 
+  }
+  else{ argl$y <- xj }
+
   fit <- do.call(gamlr,argl)
   ## print works only if you've specified an outfile in makeCluster
   if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
@@ -156,10 +147,10 @@ predict.dmrcoef <- function(object, newdata,
   if(is.vector(newdata)){ newdata <- matrix(newdata, nrow=1) }
   if(is.data.frame(newdata)){ newdata <- as.matrix(newdata) }
 
+  type=match.arg(type)
   if(type=="reduction")
     stop("type `reduction' has been replaced by the `srproj' function in the textir library.")
-  type=match.arg(type)
-  
+
   eta <- t(tcrossprod(t(object[-1,,drop=FALSE]),newdata) + object[1,])
   if(type=="response"){
     expeta <- exp(eta)
