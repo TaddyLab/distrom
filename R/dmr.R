@@ -8,9 +8,7 @@ onerun <- function(xj, argl){
   argl$y <- xj
   if(argl$cv) fit <- do.call(cv.gamlr,argl)
   else fit <- do.call(gamlr,argl)
-  ## print works only if you've specified an outfile in makeCluster
-  if(length(fit$lambda)<argl$nlambda) print(colnames(xj))
-  return(fit)
+   return(fit)
 }
 
 ## main function
@@ -21,7 +19,7 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
   }
   #build the default argument list
   argl <- list(...)
-  argl$family="poisson"
+  argl$family <- "poisson"
   if(is.null(argl$nlambda))
     argl$nlambda <- formals(gamlr)$nlambda
   argl$verb <- max(verb-1,0)
