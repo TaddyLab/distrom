@@ -1,15 +1,13 @@
 \name{dmr}
 \alias{dmr}
 \alias{distrom}
-\alias{logLik.dmr}
 \alias{predict.dmr}
 \alias{coef.dmr}
 \title{Distributed Multinomial Regression}
 \description{Gamma-lasso path estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.}
 \usage{
 dmr(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
-\method{logLik}{dmr}(object, ...)
-\method{coef}{dmr}(object, select=NULL, k=2, ...)
+\method{coef}{dmr}(object, ...)
 \method{predict}{dmr}(object, newdata,
 	type=c("link","response","class"), ...)
 }
@@ -34,7 +32,7 @@ on to gamlr and will print if you created an \code{outfile} when specifying \cod
 \item{type}{
 For \code{predict.dmr}, this is the scale upon which you want prediction. Under "link", just the linear map \code{newdata} times \code{object}, under "response" the fitted multinomial probabilities, under "class" the max-probability class label.  For sufficient reductions see the \code{srproj} function of the textir library.}
 \item{newdata}{A Matrix with the same number of columns as \code{covars}.}
-\item{...}{Additional arguments to \code{gamlr} or \code{cv.gamlr}.  }
+\item{...}{Additional arguments to \code{gamlr}, \code{cv.gamlr}, and their associated methods.  }
 \item{object}{A \code{dmr} list of fitted \code{gamlr} models for each response category. }
 }
 \details{
@@ -45,8 +43,7 @@ For \code{predict.dmr}, this is the scale upon which you want prediction. Under 
 	We [default] plug-in estimate \eqn{\hat\mu_i = log(m_i)}, where \eqn{m_i = \sum_j x_{ij}} and \eqn{p} is the dimension of \eqn{x_i}.  Then each individual is outsourced to Poisson regression in the \code{gamlr} package via the \code{parLapply} function of the \code{parallel} library.  The output from \code{dmr} is a list of \code{gamlr} fitted models.
 
 	\code{coef.dmr} builds a matrix of multinomial logistic regression
-	coefficients from the \code{length(object)} list of \code{gamlr} fits.
-	Default selection Default selection under \code{cv=FALSE} uses an
+	coefficients from the \code{length(object)} list of \code{gamlr} fits.  Default selection under \code{cv=FALSE} uses an
 	information criteria via \code{AICc} on Poisson deviance for each
 	individual response dimension (see \code{gamlr}).  Combined coefficients
 	across all dimensions are then returned as a \code{dmrcoef} s4-class
