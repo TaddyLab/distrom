@@ -1,6 +1,7 @@
 import(Matrix)
 import(gamlr)
 import(methods)
+import(parallel)
 
 export(collapse,dmr)
 
