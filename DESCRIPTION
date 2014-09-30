@@ -7,6 +7,7 @@ Depends: R (>= 2.15), Matrix, gamlr, parallel, methods
 Suggests: MASS, textir    
 Description: Estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.  See the textir package for applications in multinomial inverse regression analysis of text.
 Maintainer: Matt Taddy <taddy@chicagobooth.edu>      
-License: GPL-3     
+License: GPL-3 
+References: Taddy (2013), Distributed Multinomial Regression. http://arxiv.org/abs/1311.6139      
 URL: http://faculty.chicagobooth.edu/matt.taddy/research/index.html     
-	http://github.com/mataddy/distrom        
+	http://github.com/TaddyLab/distrom        
