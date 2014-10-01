@@ -84,7 +84,7 @@ coef.dmr <- function(object, ...){
   bp <- c(0,
     cumsum(unlist(lapply(B,function(b) b@p[-1]))))
   Bs <- sparseMatrix(i=bi+1,p=bp,x=bx,
-    dim=c(nrow(B[[1]]),length(B)),
+    dims=c(nrow(B[[1]]),length(B)),
     dimnames=list(rownames(B[[1]]),names(B)))
   Bs <- as(as(Bs,"dgCMatrix"),"dmrcoef")
   return(Bs)
