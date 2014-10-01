@@ -78,10 +78,16 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
 }
 
 coef.dmr <- function(object, ...){
-  B <- do.call(cBind, lapply(object,coef, ...))
-  colnames(B) <- names(object)
-  B <- as(as(B,"dgCMatrix"),"dmrcoef")
-  return(B)
+  B <- lapply(object,coef, ...)
+  bx <- unlist(lapply(B,function(b) b@x))
+  bi <- unlist(lapply(B,function(b) b@i))
+  bp <- c(0,
+    cumsum(unlist(lapply(B,function(b) b@p[-1]))))
+  Bs <- sparseMatrix(i=bi+1,p=bp,x=bx,
+    dim=c(nrow(B[[1]]),length(B)),
+    dimnames=list(rownames(B[[1]]),names(B)))
+  Bs <- as(as(Bs,"dgCMatrix"),"dmrcoef")
+  return(Bs)
 }
 
 ## method predict functions
