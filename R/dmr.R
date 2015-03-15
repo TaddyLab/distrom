@@ -6,7 +6,7 @@ setClass("dmrcoef", contains="dgCMatrix")
 ## inner loop function
 onerun <- function(xj, argl){
   argl$y <- xj
-  if(length(argl$free)>0){
+  if(length(argl$free)>0){ #check existence of mle portion
     xfnz <- as.matrix(argl$x[drop(argl$y>0),argl$free])
     Q <- qr(cbind(1,xfnz))
     fullrank <- Q$pivot[2:Q$rank]-1
