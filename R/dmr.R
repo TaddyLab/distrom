@@ -6,12 +6,14 @@ setClass("dmrcoef", contains="dgCMatrix")
 ## inner loop function
 onerun <- function(xj, argl){
   argl$y <- xj
-  if(length(argl$free)>0){ #check existence of mle portion
-    xfnz <- as.matrix(argl$x[drop(argl$y>0),argl$free])
-    Q <- qr(cbind(1,xfnz))
-    fullrank <- Q$pivot[2:Q$rank]-1
-    argl$free <- argl$free[fullrank]
-  }
+  #if(length(argl$free)>0){ #check existence of mle portion
+  #  xfnz <- as.matrix(argl$x[drop(argl$y>0),argl$free])
+  #  Q <- qr(cbind(1,xfnz))
+  #  fullrank <- Q$pivot[2:Q$rank]-1
+  #  #argl$free <- argl$free[fullrank]
+  #  argl$ridge <- rep(0,ncol(argl$x))
+  #  argl$ridge[argl$free[-fullrank]] <- 1e-5
+  #}
   if(argl$cv) fit <- do.call(cv.gamlr,argl)
   else fit <- do.call(gamlr,argl)
   return(fit)
