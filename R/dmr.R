@@ -6,7 +6,7 @@ setClass("dmrcoef", contains="dgCMatrix")
 ## inner loop function
 onerun <- function(xj, argl){
   argl$y <- xj
-  if(length(argl$free)>0){ #check existence of mle portion
+  if(argl$checkmleexist){ 
    xfnz <- as.matrix(argl$x[drop(argl$y>0),argl$free])
    Q <- qr(cbind(1,xfnz))
    fullrank <- Q$pivot[2:Q$rank]-1
@@ -32,6 +32,8 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
     argl$nlambda <- formals(gamlr)$nlambda
   argl$verb <- max(verb-1,0)
   argl$cv <- cv
+  if(is.null(argl$checkmleexist))
+    argl$checkmleexist <- FALSE
 
   ## collapse and clean
   chk <- collapse(covars, counts, mu, bins)
@@ -39,7 +41,7 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
     cat(sprintf("fitting %d observations on %d categories, %d covariates.\n",
         nrow(chk$v), ncol(chk$counts), ncol(chk$v)))
   argl$x <- chk$v
-  argl$fix <- chk$mu
+  argl$shift <- chk$mu
   nobs <- sum(chk$nbin)
   p <- ncol(chk$counts)
   vars <- colnames(chk$counts)
@@ -81,7 +83,7 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
   class(mods) <- "dmr"
   attr(mods,"nobs") <- nobs
   attr(mods,"nlambda") <- argl$nlambda
-  attr(mods,"mu") <- argl$fix
+  attr(mods,"mu") <- argl$shift
   return(mods)
 }
 
