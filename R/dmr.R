@@ -6,7 +6,14 @@ setClass("dmrcoef", contains="dgCMatrix")
 ## inner loop function
 onerun <- function(xj, argl){
   argl$y <- xj
-  if(argl$checkmleexist){ 
+  if(argl$nzcheck){ 
+    xnz <- as.matrix(argl$x[drop(argl$y>0),])
+    allz <- which(colSums(xnz!=0)==0)
+    if(is.null(argl$varweight)) argl$varweight <- rep(1,ncol(argl$x))
+    argl$varweight[allz] <- Inf
+    argl$free <- argl$free[ !(argl$free %in% allz) ]
+  }
+  if(argl$mlecheck){
    xfnz <- as.matrix(argl$x[drop(argl$y>0),argl$free])
    Q <- qr(cbind(1,xfnz))
    fullrank <- Q$pivot[2:Q$rank]-1
@@ -32,8 +39,10 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
     argl$nlambda <- formals(gamlr)$nlambda
   argl$verb <- max(verb-1,0)
   argl$cv <- cv
-  if(is.null(argl$checkmleexist))
-    argl$checkmleexist <- FALSE
+  if(is.null(argl$nzcheck))
+    argl$nzcheck <- TRUE
+  if(is.null(argl$mlecheck))
+    argl$mlecheck <- FALSE
 
   ## collapse and clean
   chk <- collapse(covars, counts, mu, bins)
