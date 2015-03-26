@@ -6,7 +6,7 @@ setClass("dmrcoef", contains="dgCMatrix")
 ## inner loop function
 onerun <- function(xj, argl){
   argl$y <- xj
-  if(argl$nzcheck | argl$mlecheck){ 
+  if(argl$nzcheck | argl$mlcheck){ 
     xnz <- as.matrix(argl$x[drop(argl$y>0),])
     if(argl$nzcheck) fullrank <- which(colSums(xnz!=0)!=0)
     else{
@@ -35,11 +35,10 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
     argl$nlambda <- formals(gamlr)$nlambda
   argl$verb <- max(verb-1,0)
   argl$cv <- cv
-  if(is.null(argl$mlecheck))
-    argl$mlecheck <- FALSE
+  if(is.null(argl$mlcheck))
+    argl$mlcheck <- FALSE
   if(is.null(argl$nzcheck))
-    argl$nzcheck <- !argl$mlecheck
-
+    argl$nzcheck <- FALSE
   ## collapse and clean
   chk <- collapse(covars, counts, mu, bins)
   if(verb)
