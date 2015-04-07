@@ -7,7 +7,7 @@ setClass("dmrcoef", contains="dgCMatrix")
 onerun <- function(xj, argl){
   argl$y <- xj
   if(argl$nzcheck | argl$mlcheck){ 
-    xnz <- as.matrix(argl$x[drop(argl$y>0),])
+    xnz <- as.matrix(argl$x[drop(argl$y>0),,drop=FALSE])
     if(argl$nzcheck) fullrank <- which(colSums(xnz!=0)!=0)
     else{
       Q <- qr(cbind(1,xnz))
