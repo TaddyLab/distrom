@@ -10,8 +10,8 @@ onerun <- function(xj, argl){
     xnz <- as.matrix(argl$x[drop(argl$y>0),,drop=FALSE])
     if(argl$nzcheck) fullrank <- which(colSums(xnz!=0)!=0)
     else{
-      Q <- qr(cbind(1,xnz))
-      fullrank <- Q$pivot[2:Q$rank]-1
+      Q <- qr(xnz)
+      fullrank <- Q$pivot[1:Q$rank]
     }
     if(is.null(argl$varweight)) argl$varweight <- rep(1,ncol(argl$x))
     argl$varweight[-fullrank] <- Inf
