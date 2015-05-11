@@ -8,6 +8,7 @@ onerun <- function(xj, argl){
   argl$y <- xj
   if(argl$nzcheck | argl$mlcheck){ 
     xnz <- as.matrix(argl$x[drop(argl$y>0),,drop=FALSE])
+    if(nrow(xnz)==0) return(NULL)
     if(argl$nzcheck) fullrank <- which(colSums(xnz!=0)!=0)
     else{
       Q <- qr(cbind(1,xnz))
@@ -93,6 +94,7 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
 
 coef.dmr <- function(object, ...){
   B <- lapply(object,coef, ...)
+  B[sapply(B,is.null)] <- Matrix(0)
   bx <- unlist(lapply(B,function(b) b@x))
   bi <- unlist(lapply(B,function(b) b@i))
   bp <- c(0,
