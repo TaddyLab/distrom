@@ -20,6 +20,7 @@ onerun <- function(xj, argl){
   }
   if(argl$cv) fit <- do.call(cv.gamlr,argl)
   else fit <- do.call(gamlr,argl)
+  fit$nobs <- argl$nobs
   return(fit)
 }
 
@@ -47,7 +48,7 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
         nrow(chk$v), ncol(chk$counts), ncol(chk$v)))
   argl$x <- chk$v
   argl$shift <- chk$mu
-  nobs <- sum(chk$nbin)
+  argl$nobs <- sum(chk$nbin)
   p <- ncol(chk$counts)
   vars <- colnames(chk$counts)
   ## cleanup
@@ -86,7 +87,7 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
     
   ## classy exit
   class(mods) <- "dmr"
-  attr(mods,"nobs") <- nobs
+  attr(mods,"nobs") <- argl$nobs
   attr(mods,"nlambda") <- argl$nlambda
   attr(mods,"mu") <- argl$shift
   return(mods)
