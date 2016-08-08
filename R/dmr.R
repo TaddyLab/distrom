@@ -7,18 +7,6 @@ setClass("dmrcoef", contains="dgCMatrix")
 onerun <- function(xj, argl){
   if(length(xj@i)==0) return(NULL) # n'er occurs
   argl$y <- xj
-  if(argl$nzcheck | argl$mlcheck){ 
-    xnz <- as.matrix(argl$x[drop(argl$y>0),,drop=FALSE])
-    if(nrow(xnz)==0) return(NULL)
-    if(argl$nzcheck) fullrank <- which(colSums(xnz!=0)!=0)
-    else{
-      Q <- qr(cbind(1,xnz))
-      fullrank <- Q$pivot[ 2:Q$rank ] - 1
-    }
-    if(is.null(argl$varweight)) argl$varweight <- rep(1,ncol(argl$x))
-    argl$varweight[-fullrank] <- Inf
-    argl$free <- argl$free[ (argl$free %in% fullrank) ]
-  }
   if(argl$cv) fit <- do.call(cv.gamlr,argl)
   else fit <- do.call(gamlr,argl)
   fit$nobs <- argl$nobs
@@ -38,10 +26,6 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
     argl$nlambda <- formals(gamlr)$nlambda
   argl$verb <- max(verb-1,0)
   argl$cv <- cv
-  if(is.null(argl$mlcheck))
-    argl$mlcheck <- FALSE
-  if(is.null(argl$nzcheck))
-    argl$nzcheck <- FALSE
   ## collapse and clean
   chk <- collapse(covars, counts, mu, bins)
   if(verb)
