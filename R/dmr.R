@@ -9,7 +9,6 @@ onerun <- function(xj, argl){
   argl$y <- xj
   if(argl$cv) fit <- do.call(cv.gamlr,argl)
   else fit <- do.call(gamlr,argl)
-  fit$nobs <- argl$nobs
   return(fit)
 }
 
@@ -33,7 +32,6 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
         nrow(chk$v), ncol(chk$counts), ncol(chk$v)))
   argl$x <- chk$v
   argl$shift <- chk$mu
-  argl$nobs <- sum(chk$nbin)
   p <- ncol(chk$counts)
   vars <- colnames(chk$counts)
   ## cleanup
