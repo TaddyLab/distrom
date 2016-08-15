@@ -53,13 +53,13 @@ For \code{predict.dmr}, this is the scale upon which you want prediction. Under 
 }
 \value{  \code{dmr} returns the \code{dmr} s3 object: an \code{ncol(counts)}-length list of fitted \code{gamlr} objects, with the added attributes \code{nlambda}, \code{mu}, and \code{nobs}. }
 \references{
-Taddy (2013) Distributed Multinomial Regression
+Taddy (2015) Distributed Multinomial Regression, the Annals of Applied Statistics
 
-Taddy (2013) The Gamma Lasso
+Taddy (2016) One-step Estimator Paths for Concave Regularization, the Journal of Computational and Graphical Statistics
 
 Taddy (2013) Multinomial Inverse Regression for Text Analysis, with discussion and rejoinder, Journal of the American Statistical Association.
 }
-\author{Matt Taddy \email{taddy@chicagobooth.edu}}
+\author{Matt Taddy \email{mataddy@gmail.com}}
 \examples{
 
 library(MASS)

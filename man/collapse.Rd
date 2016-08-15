@@ -16,6 +16,6 @@
 }
 \value{A list containing collapsed and formatted \code{v}, \code{counts}, and \code{nbin}, along with \code{mu = log(rowSums(counts))}, the plug-in fixed effect estimates for dmr.}
 \author{
-  Matt Taddy \email{taddy@chicagobooth.edu}
+  Matt Taddy \email{mataddy@gmail.com}
 }
 \seealso{we8there}

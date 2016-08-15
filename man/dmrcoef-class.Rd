@@ -32,6 +32,6 @@ Objects can be created only by a call to the \code{coef.dmr} function.
 	 }
 }
 \seealso{dmr, coef.dmr, predict.dmr}
-\author{Matt Taddy \email{taddy@chicagobooth.edu} }
+\author{Matt Taddy \email{mataddy@gmail.com} }
 \examples{showClass("dmrcoef")}
 \keyword{classes}

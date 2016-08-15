@@ -1,11 +1,10 @@
 Package: distrom   
 Title: Distributed Multinomial Regression   
 Version: 0.3-4
-Author: Matt Taddy <taddy@chicagobooth.edu>     
+Author: Matt Taddy <mataddy@gmail.com>     
 Depends: R (>= 2.15), Matrix, gamlr, parallel, methods, stats      
 Suggests: MASS, textir    
 Description: Estimation for a multinomial logistic regression factorized into independent  Poisson log regressions.  See the textir package for applications in multinomial inverse regression analysis of text.
-Maintainer: Matt Taddy <taddy@chicagobooth.edu>      
+Maintainer: Matt Taddy <mataddy@gmail.com>      
 License: GPL-3 
-URL: http://faculty.chicagobooth.edu/matt.taddy/research/index.html     
-	http://github.com/TaddyLab/distrom        
+URL: http://github.com/TaddyLab/distrom        
