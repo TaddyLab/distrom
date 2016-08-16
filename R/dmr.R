@@ -9,7 +9,6 @@ onerun <- function(xj, argl){
   argl$y <- xj
   if(argl$cv) fit <- do.call(cv.gamlr,argl)
   else fit <- do.call(gamlr,argl)
-  fit$nobs <- argl$nobs
   return(fit)
 }
 
@@ -33,7 +32,6 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
         nrow(chk$v), ncol(chk$counts), ncol(chk$v)))
   argl$x <- chk$v
   argl$shift <- chk$mu
-  argl$nobs <- sum(chk$nbin)
   p <- ncol(chk$counts)
   vars <- colnames(chk$counts)
   ## cleanup
@@ -80,7 +78,8 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
 
 coef.dmr <- function(object, ...){
   B <- lapply(object,coef, ...)
-  B[sapply(B,is.null)] <- Matrix(0)
+  failures <- sapply(B,is.null)
+  if(any(failures)) B[[which(failures)]] <- Matrix(0)
   bx <- unlist(lapply(B,function(b) b@x))
   bi <- unlist(lapply(B,function(b) b@i))
   bp <- c(0,
