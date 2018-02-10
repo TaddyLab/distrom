@@ -45,7 +45,7 @@ collapse <- function(v,counts,mu=NULL,bins=NULL){
   }
 
   ## binning
-  if(p>10) warning("Unless you have a trivial number of input covariates (e.g., 10 or less) 
+  if(ncol(v)>10) warning("Unless you have a trivial number of input covariates (e.g., 10 or less) 
     then you probably don't want to bin. The number of unique factor combinations will be too large.")
   qs <- (0:bins)/bins
   cutit <- function(vj){
