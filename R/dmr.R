@@ -79,7 +79,7 @@ dmr <- function(cl, covars, counts, mu=NULL, bins=NULL, verb=0, cv=FALSE, ...)
 coef.dmr <- function(object, ...){
   B <- lapply(object,coef, ...)
   failures <- sapply(B,is.null)
-  for (i in which(failures == TRUE)) B[[i]] <- Matrix(0)
+  for (i in which(failures == TRUE)) B[[i]] <- Matrix(0, doDiag = FALSE)
   bx <- unlist(lapply(B,function(b) b@x))
   bi <- unlist(lapply(B,function(b) b@i))
   bp <- c(0,
