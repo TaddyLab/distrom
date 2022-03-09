@@ -1,7 +1,11 @@
 Package: distrom   
 Title: Distributed Multinomial Regression   
 Version: 1.0
-Author: Matt Taddy <mataddy@gmail.com>     
+Authors@R:
+  c(
+  person("Matt", "Taddy", email = "mataddy@gmail.com", role = c("aut", "cre")),
+  person("Nelson", "Rayl", email = "nelsonrayl14@gmail.com", role = c("cre"))
+  )
 Depends: R (>= 2.15), Matrix, gamlr, parallel, methods, stats      
 Suggests: MASS, textir    
 Description: Fast distributed/parallel estimation for multinomial logistic regression via Poisson factorization and the 'gamlr' package.  For details see: Taddy (2015, AoAS), Distributed Multinomial Regression, <arXiv:1311.6139>.
