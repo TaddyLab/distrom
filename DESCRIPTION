@@ -3,8 +3,8 @@ Title: Distributed Multinomial Regression
 Version: 1.1
 Authors@R:
   c(
-  person("Matt", "Taddy", email = "mataddy@gmail.com", role = c("aut", "cre")),
-  person("Nelson", "Rayl", email = "nelsonrayl14@gmail.com", role = c("cre"))
+  person("Matt", "Taddy", email = "mataddy@gmail.com", role = "aut"),
+  person("Nelson", "Rayl", email = "nelsonrayl14@gmail.com", role = "cre)"
   )
 Depends: R (>= 2.15), Matrix, gamlr, parallel, methods, stats      
 Suggests: MASS, textir    
