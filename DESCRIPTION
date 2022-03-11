@@ -1,6 +1,6 @@
 Package: distrom   
 Title: Distributed Multinomial Regression   
-Version: 1.0
+Version: 1.1
 Authors@R:
   c(
   person("Matt", "Taddy", email = "mataddy@gmail.com", role = c("aut", "cre")),
