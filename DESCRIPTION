@@ -9,6 +9,6 @@ Authors@R:
 Depends: R (>= 2.15), Matrix, gamlr, parallel, methods, stats      
 Suggests: MASS, textir    
 Description: Fast distributed/parallel estimation for multinomial logistic regression via Poisson factorization and the 'gamlr' package.  For details see: Taddy (2015, AoAS), Distributed Multinomial Regression, <arXiv:1311.6139>.
-Maintainer: Matt Taddy <mataddy@gmail.com>      
+Maintainer: Nelson Rayl <nelsonrayl14@gmail.com>      
 License: GPL-3 
 URL: http://github.com/TaddyLab/distrom        
