@@ -1,1 +1,9 @@
 .git
+^doc$
+^Meta$
+^README\.Rmd$
+^README\.md$
+^LICENSE\.md$
+^cran-comments\.md$
+^CRAN-RELEASE$
+^\.github$
