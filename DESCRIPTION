@@ -11,4 +11,4 @@ Suggests: MASS, textir
 Description: Fast distributed/parallel estimation for multinomial logistic regression via Poisson factorization and the 'gamlr' package.  For details see: Taddy (2015, AoAS), Distributed Multinomial Regression, <arXiv:1311.6139>.
 Maintainer: Nelson Rayl <nelsonrayl14@gmail.com>      
 License: GPL-3 
-URL: http://github.com/TaddyLab/distrom        
+URL: https://github.com/TaddyLab/distrom        
