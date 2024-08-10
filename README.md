@@ -5,9 +5,10 @@
 
 <!-- badges: start -->
 
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/distrom?color=brightgreen)](https://cran.r-project.org/package=distrom)
-[![Total
-Downloads](http://cranlogs.r-pkg.org/badges/grand-total/distrom?color=blue)](https://cran.r-project.org/package=distrom)
+[![CRAN Version](https://www.r-pkg.org/badges/version/distrom)](https://www.r-pkg.org/pkg/distrom)
+[![CRAN Posit Mirror Downloads](https://cranlogs.r-pkg.org/badges/grand-total/distrom)](https://www.r-pkg.org/pkg/distrom)
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-success.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+
 <!-- badges: end -->
 
 The R package *distrom* contains functions for computing a distributed
