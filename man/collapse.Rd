@@ -4,8 +4,8 @@
 \description{Collapses counts along equal levels of binned covariates.}
 \usage{collapse(v,counts,mu=NULL,bins=NULL)}
 \arguments{
-	\item{v}{Either matrix or Matrix of covariates (matches \code{covars} in \code{dmr}).}
-	\item{counts}{Either matrix or Matrix of multinomial counts, or a factor (matches \code{counts} in \code{dmr}).}
+	\item{v}{Either matrix or \code{\link[Matrix]{Matrix}} of covariates (matches \code{covars} in \code{dmr}).}
+	\item{counts}{Either matrix or \code{\link[Matrix]{Matrix}} of multinomial counts, or a factor (matches \code{counts} in \code{dmr}).}
 	\item{mu}{Possible pre-specified fixed effects for \code{dmr}; otherwise they are calculated here.}
 	\item{bins}{The number of quantile bins into which we collapse \code{v}.  \code{bins=NULL} does no collapsing. }
 }
@@ -18,4 +18,4 @@
 \author{
   Matt Taddy \email{mataddy@gmail.com}
 }
-\seealso{we8there}
+\seealso{\link[textir]{we8there}}
